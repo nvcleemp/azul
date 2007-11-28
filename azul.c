@@ -114,6 +114,52 @@ int collapse(struct delaney *symbol, int chamber1, int chamber2, int* partition)
 	return 1;
 }
 
+void minimal_delaney(struct delaney *symbol, struct delaney *minimal_symbol){
+	int size = symbol->size;
+	int partition[size];
+	int temp[size];
+	int i, j;
+	for(i=0; i<size; i++)
+		partition[i]=i;
+	
+	//completely collapse symbol
+	for(i=1; i<size; i++){
+		//copy partition to temp
+		for(j=0;j<size;j++)
+			temp[j]=partition[j];
+		
+		//collapse 0 and i
+		if(collapse(symbol, 0, i, temp)) //when successfull
+			for(j=0;j<size;j++) //copy temp to partition
+				partition[j]=temp[j];
+	}
+	
+	//create new symbol from partition
+	//labelling
+	int newsize = 0;
+	int old2new[size];
+	int new2old[size];
+	for(i=0; i<size; i++)
+		old2new[i]=-1;
+	for(i=0; i<size; i++){
+		if(old2new[partition[i]]==-1){
+			old2new[partition[i]]=newsize;
+			new2old[newsize]=partition[i];
+			newsize++;
+		}
+		old2new[i]=old2new[partition[i]];
+	}
+	
+	//creation
+	minimal_symbol->size = newsize;
+	for(i=0; i<newsize; i++){
+		minimal_symbol->m01[i]=symbol->m01[new2old[i]];
+		minimal_symbol->chambers[i][0]=old2new[symbol->chambers[new2old[i]][0]];
+		minimal_symbol->chambers[i][1]=old2new[symbol->chambers[new2old[i]][1]];
+		minimal_symbol->chambers[i][2]=old2new[symbol->chambers[new2old[i]][2]];
+	}
+}
+
 /*****************************************************************************/
 /* positive when symbol1 > symbol2
  * 0 when symbol1 == symbol2
