@@ -41,7 +41,10 @@ int counter3 = 0;
 int counter4 = 0;
 
 /*****************************************************************************/
-// positive when symbol1 > symbol2, 0 when symbol1 == symbol2, negative when symbol1 < symbol2
+/* positive when symbol1 > symbol2
+ * 0 when symbol1 == symbol2
+ * negative when symbol1 < symbol2
+ */
 int compare(struct delaney *symbol1, struct delaney *symbol2){
 	int i=0;
 	while(i<48 && symbol1->m01[i] == symbol2->m01[i])
@@ -88,16 +91,40 @@ void canonical_chamber_relabelling(struct delaney *symbol, int *relabelling, int
 			}
 		}
 	}
-	
 }
 
+/* Applies the relabelling to origin and fills image
+ */
+void apply_relabelling(struct delaney *origin, int *relabelling, struct delaney *image){
+	int reverse_labelling[48];
+	int i;
+	for(i=0; i<48; i++)
+		reverse_labelling[relabelling[i]] = i;
+	
+	for(i=0; i<48; i++){
+		image->m01[i] = origin->m01[relabelling[i]];
+		image->chambers[i][0] = reverse_labelling[origin->chambers[relabelling[i]][0]];
+		image->chambers[i][1] = reverse_labelling[origin->chambers[relabelling[i]][1]];
+		image->chambers[i][2] = reverse_labelling[origin->chambers[relabelling[i]][2]];
+	}
+}
 
-//canon_symbol contains the canonical form of symbol when this method returns
+/*canon_symbol contains the canonical form of symbol when this method returns
+ */
 void canonical_form(struct delaney *symbol, struct delaney *canon_symbol){
 	int i;
+	int  relabelling[48];
+	int found=0; //true when we found a possible candidate
 	for(i=0; i<48; i++){
-		int tree[48];
-		index_priority_depth_first_traversal(symbol, tree, i);
+		if(symbol->m01[i]==4){
+			// all our symbol contain at least 2 fours so
+			// we can only have a canonical form if we start
+			// with such a chamber
+			canonical_chamber_relabelling(symbol, relabelling, i);
+			if(found){
+			} 
+			
+		}
 		
 	
 	}
