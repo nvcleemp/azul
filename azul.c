@@ -49,7 +49,9 @@ int counter3 = 0;
 int counter4 = 0;
 
 /*****************************************************************************/
-
+/* Collapses the two chambers and if this method returns true then partition
+ * contains the resulting partition.
+ */
 int collapse(struct delaney *symbol, int chamber1, int chamber2, int* partition){
 	int stack[48*47][2];
 	int stacksize;
@@ -119,6 +121,8 @@ int collapse(struct delaney *symbol, int chamber1, int chamber2, int* partition)
  */
 int compare(struct delaney *symbol1, struct delaney *symbol2){
 	int i=0;
+	if(symbol1->size!=symbol2->size)
+		return symbol1->size - symbol2->size;
 	while(i<48 && symbol1->m01[i] == symbol2->m01[i])
 		i++;
 	if(i<48)
@@ -171,6 +175,7 @@ void canonical_chamber_relabelling(struct delaney *symbol, int *relabelling, int
 void apply_relabelling(struct delaney *origin, int *relabelling, struct delaney *image){
 	int reverse_labelling[48];
 	int i;
+	image->size = origin->size;
 	for(i=0; i<48; i++)
 		reverse_labelling[relabelling[i]] = i;
 	
@@ -333,6 +338,7 @@ void fill_m01(int *m01, struct delaney *symbol){
 
 void basicDelaney(struct delaney *symbol){
 	int i;
+	symbol->size = 48;
 	for(i = 0; i< 48; i++){
 		symbol->chambers[i][0] = -1;
 		symbol->chambers[i][1] = -1;
