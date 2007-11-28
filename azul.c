@@ -30,6 +30,7 @@ struct bucket_collection{
 };
 
 struct delaney{
+	int size;
 	int chambers[48][3];
 	
 	int m01[48];
@@ -46,6 +47,70 @@ int counter = 0;
 int counter2 = 0;
 int counter3 = 0;
 int counter4 = 0;
+
+/*****************************************************************************/
+
+int collapse(struct delaney *symbol, int chamber1, int chamber2, int* partition){
+	int stack[48*47][2];
+	int stacksize;
+	int i,j;
+	int size = symbol->size;
+	if(symbol->m01[chamber1]!=symbol->m01[chamber2])
+		return 0;
+		
+	if(partition[chamber1]==partition[chamber2])
+		return 1; //already collapsed
+		
+	//union
+	if(partition[chamber1]<partition[chamber2]){
+		int oldvalue = partition[chamber2];
+		for(i = 0; i<size; i++)
+			if(partition[i]==oldvalue)
+				partition[i]=partition[chamber1];
+	} else {
+		int oldvalue = partition[chamber1];
+		for(i = 0; i<size; i++)
+			if(partition[i]==oldvalue)
+				partition[i]=partition[chamber2];
+	}
+	
+	stack[0][0] = chamber1;
+	stack[0][1] = chamber2;
+	stacksize = 1;
+	
+	while(stacksize){
+		stacksize--;
+		int current1 = stack[stacksize][0];
+		int current2 = stack[stacksize][1];
+		for(j = 0; j<3; i++){
+			int neighbour1 = symbol->chambers[current1][j];
+			int neighbour2 = symbol->chambers[current2][j];
+			if(symbol->m01[neighbour1]!=symbol->m01[neighbour1])
+				return 0;
+			
+			//union
+			if(partition[neighbour1]<partition[neighbour2]){
+				int oldvalue = partition[neighbour2];
+				for(i = 0; i<size; i++)
+					if(partition[i]==oldvalue)
+						partition[i]=partition[neighbour1];
+				stack[stacksize][0] = neighbour1;
+				stack[stacksize][1] = neighbour2;
+				stacksize++;
+			} else if(partition[neighbour1]>partition[neighbour2]){
+				int oldvalue = partition[neighbour1];
+				for(i = 0; i<size; i++)
+					if(partition[i]==oldvalue)
+						partition[i]=partition[neighbour2];
+				stack[stacksize][0] = neighbour1;
+				stack[stacksize][1] = neighbour2;
+				stacksize++;
+			}
+		}
+	}
+	
+	return 1;
+}
 
 /*****************************************************************************/
 /* positive when symbol1 > symbol2
@@ -76,7 +141,7 @@ int compare(struct delaney *symbol1, struct delaney *symbol2){
  * This relabelling is based on a DFS that choses the children to visit in the order sigma_0 .. sigma_2
  */
 void canonical_chamber_relabelling(struct delaney *symbol, int *relabelling, int start){
-	int stack[49];
+	int stack[48];
 	int stacksize;
 	int i, j;
 	int visited[48];
