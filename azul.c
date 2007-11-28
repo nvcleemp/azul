@@ -35,6 +35,13 @@ struct delaney{
 	int m01[48];
 };
 
+struct delaney_collection{
+	int size;
+	struct delaney collection[623];
+};
+
+struct delaney_collection library;
+
 int counter = 0;
 int counter2 = 0;
 int counter3 = 0;
@@ -69,7 +76,7 @@ int compare(struct delaney *symbol1, struct delaney *symbol2){
  * This relabelling is based on a DFS that choses the children to visit in the order sigma_0 .. sigma_2
  */
 void canonical_chamber_relabelling(struct delaney *symbol, int *relabelling, int start){
-	int stack[48];
+	int stack[49];
 	int stacksize;
 	int i, j;
 	int visited[48];
@@ -86,6 +93,7 @@ void canonical_chamber_relabelling(struct delaney *symbol, int *relabelling, int
 		int chamber = stack[--stacksize];
 		for(j=0; j<3; j++){
 			if(!visited[symbol->chambers[chamber][j]]){
+				visited[symbol->chambers[chamber][j]] = 1;
 				relabelling[index++]=symbol->chambers[chamber][j];
 				stack[stacksize++] = symbol->chambers[chamber][j];
 			}
@@ -134,6 +142,15 @@ void canonical_form(struct delaney *symbol, struct delaney *canon_symbol){
 	}
 }
 
+void add_to_library(struct delaney *symbol){
+	canonical_form(symbol, library.collection + library.size);
+	int i = 0;
+	while(i<library.size && compare(library.collection + library.size, library.collection + i)!=0)
+		i++;
+	if(i==library.size)
+		library.size++;
+}
+
 /*****************************************************************************/
 
 void printDelaney(struct delaney *symbol){
@@ -178,7 +195,7 @@ void complete_sigma0(struct delaney *symbol){
 		if(j==48){
 			//new symbol!
 			counter4++;
-			printDelaney(symbol);
+			add_to_library(symbol);
 		}
 	} else {
 		//first try loop
@@ -386,6 +403,7 @@ void tick(int array[], int position){
 
 int main()
 {
+		library.size=0;
         int array[SIZE+2];
         int i;
         for(i = 0; i<SIZE+2;i++)
@@ -394,6 +412,7 @@ int main()
                 tick(array, SIZE - 1);
 		fprintf(stderr, "Found %d canonical circular strings\n", counter3);
 		fprintf(stderr, "Found %d symbols\n", counter4);
+		fprintf(stderr, "Found %d canonical symbols\n", library.size);
 		/*
 		struct delaney symbol;
 		basicDelaney(&symbol);
