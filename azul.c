@@ -62,30 +62,6 @@ int compare(struct delaney *symbol1, struct delaney *symbol2){
 }
 
 //fills spanning_tree with a spanning tree (has to have size 48), rooted in start
-void index_priority_depth_first_traversal(struct delaney *symbol, int *spanning_tree, int start){
-	int stack[48];
-	int stacksize;
-	int i, j;
-	for(i=0; i<48; i++)
-		spanning_tree[i]=3;
-	
-	spanning_tree[start] = -1;
-	stack[0] = start;
-	stacksize = 1;
-	
-	while(stacksize>0){
-		int chamber = stack[--stacksize];
-		for(j=0; j<3; j++){
-			if(spanning_tree[symbol->chambers[chamber][j]]==3){
-				spanning_tree[symbol->chambers[chamber][j]]=j;
-				stack[stacksize++] = symbol->chambers[chamber][j];
-			}
-		}
-	}
-	
-}
-
-//fills spanning_tree with a spanning tree (has to have size 48), rooted in start
 void chamber_relabelling(struct delaney *symbol, int *relabelling, int start){
 	int stack[48];
 	int stacksize;
