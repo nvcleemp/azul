@@ -61,8 +61,11 @@ int compare(struct delaney *symbol1, struct delaney *symbol2){
 	return 0;
 }
 
-//fills spanning_tree with a spanning tree (has to have size 48), rooted in start
-void chamber_relabelling(struct delaney *symbol, int *relabelling, int start){
+/* When this method returns relabelling will contain a canonical relabelling of the chambers 
+ * that gives the chamber 'start' the label '0'.
+ * This relabelling is based on a DFS that choses the children to visit in the order sigma_0 .. sigma_2
+ */
+void canonical_chamber_relabelling(struct delaney *symbol, int *relabelling, int start){
 	int stack[48];
 	int stacksize;
 	int i, j;
