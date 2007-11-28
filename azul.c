@@ -114,7 +114,8 @@ void apply_relabelling(struct delaney *origin, int *relabelling, struct delaney 
 void canonical_form(struct delaney *symbol, struct delaney *canon_symbol){
 	int i;
 	int  relabelling[48];
-	int found=0; //true when we found a possible candidate
+	int found=0; //true when we already found a possible candidate
+	struct delaney temp_delaney;
 	for(i=0; i<48; i++){
 		if(symbol->m01[i]==4){
 			// all our symbol contain at least 2 fours so
@@ -122,11 +123,14 @@ void canonical_form(struct delaney *symbol, struct delaney *canon_symbol){
 			// with such a chamber
 			canonical_chamber_relabelling(symbol, relabelling, i);
 			if(found){
-			} 
-			
+				apply_relabelling(symbol, relabelling, &temp_delaney);
+				if(compare(&temp_delaney, canon_symbol)<0)
+					apply_relabelling(symbol, relabelling, canon_symbol);
+			} else {
+				apply_relabelling(symbol, relabelling, canon_symbol);
+				found = 1;
+			}
 		}
-		
-	
 	}
 }
 
