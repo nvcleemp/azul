@@ -43,6 +43,8 @@ struct delaney_collection{
 
 struct delaney_collection library;
 
+struct delaney_collection minimal_library;
+
 int counter = 0;
 int counter2 = 0;
 int counter3 = 0;
@@ -84,10 +86,10 @@ int collapse(struct delaney *symbol, int chamber1, int chamber2, int* partition)
 		stacksize--;
 		int current1 = stack[stacksize][0];
 		int current2 = stack[stacksize][1];
-		for(j = 0; j<3; i++){
+		for(j = 0; j<3; j++){
 			int neighbour1 = symbol->chambers[current1][j];
 			int neighbour2 = symbol->chambers[current2][j];
-			if(symbol->m01[neighbour1]!=symbol->m01[neighbour1])
+			if(symbol->m01[neighbour1]!=symbol->m01[neighbour2])
 				return 0;
 			
 			//union
@@ -169,17 +171,17 @@ int compare(struct delaney *symbol1, struct delaney *symbol2){
 	int i=0;
 	if(symbol1->size!=symbol2->size)
 		return symbol1->size - symbol2->size;
-	while(i<48 && symbol1->m01[i] == symbol2->m01[i])
+	while(i<symbol1->size && symbol1->m01[i] == symbol2->m01[i])
 		i++;
-	if(i<48)
+	if(i<symbol1->size)
 		return (symbol1->m01[i] - symbol2->m01[i]);
 		
 	int j;
 	for(j=0;j<3;j++){
 		i=0;
-		while(i<48 && symbol1->chambers[i][j] == symbol2->chambers[i][j])
+		while(i<symbol1->size && symbol1->chambers[i][j] == symbol2->chambers[i][j])
 			i++;
-		if(i<48)
+		if(i<symbol1->size)
 			return (symbol1->chambers[i][j] - symbol2->chambers[i][j]);
 	}
 	
@@ -222,10 +224,10 @@ void apply_relabelling(struct delaney *origin, int *relabelling, struct delaney 
 	int reverse_labelling[48];
 	int i;
 	image->size = origin->size;
-	for(i=0; i<48; i++)
+	for(i=0; i<origin->size; i++)
 		reverse_labelling[relabelling[i]] = i;
 	
-	for(i=0; i<48; i++){
+	for(i=0; i<origin->size; i++){
 		image->m01[i] = origin->m01[relabelling[i]];
 		image->chambers[i][0] = reverse_labelling[origin->chambers[relabelling[i]][0]];
 		image->chambers[i][1] = reverse_labelling[origin->chambers[relabelling[i]][1]];
@@ -240,7 +242,7 @@ void canonical_form(struct delaney *symbol, struct delaney *canon_symbol){
 	int  relabelling[48];
 	int found=0; //true when we already found a possible candidate
 	struct delaney temp_delaney;
-	for(i=0; i<48; i++){
+	for(i=0; i<symbol->size; i++){
 		if(symbol->m01[i]==4){
 			// all our symbol contain at least 2 fours so
 			// we can only have a canonical form if we start
@@ -267,13 +269,22 @@ void add_to_library(struct delaney *symbol){
 		library.size++;
 }
 
+void add_to_minimal_library(struct delaney *symbol){
+        canonical_form(symbol, minimal_library.collection + minimal_library.size);
+        int i = 0;
+        while(i<minimal_library.size && compare(minimal_library.collection + minimal_library.size, minimal_library.collection + i)!=0)
+                i++;
+        if(i==minimal_library.size)
+                minimal_library.size++;
+}
+
 /*****************************************************************************/
 
 void printDelaney(struct delaney *symbol){
 	int i;
 	fprintf(stdout, "|    | s0 | s1 | s2 | m01 | m12 |\n");
 	fprintf(stdout, "|===============================|\n");
-	for(i = 0; i<48; i++)
+	for(i = 0; i<symbol->size; i++)
 		fprintf(stdout, "| %2d | %2d | %2d | %2d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m01[i], 3);
 	fprintf(stdout, "|===============================|\n");
 	fprintf(stdout, "\n\n");
@@ -520,19 +531,68 @@ void tick(int array[], int position){
 
 int main()
 {
+	
 		library.size=0;
+		minimal_library.size=0;
         int array[SIZE+2];
         int i;
         for(i = 0; i<SIZE+2;i++)
                 array[i]=MIN;
         while(array[SIZE - 1] < SIZE)
                 tick(array, SIZE - 1);
-		fprintf(stderr, "Found %d canonical circular strings\n", counter3);
-		fprintf(stderr, "Found %d symbols\n", counter4);
-		fprintf(stderr, "Found %d canonical symbols\n", library.size);
-		/*
-		struct delaney symbol;
-		basicDelaney(&symbol);
-		printDelaney(&symbol);*/
+	fprintf(stderr, "Found %d canonical circular strings\n", counter3);
+	fprintf(stderr, "Found %d symbols\n", counter4);
+	fprintf(stderr, "Found %d canonical symbols\n", library.size);
+	struct delaney temp_minimal;
+	for(i = 0; i<library.size;i++){
+		minimal_delaney(library.collection+i,&temp_minimal);
+		add_to_minimal_library(&temp_minimal);
+	}
+        fprintf(stderr, "Found %d minimal, canonical symbols\n", minimal_library.size);
+	for(i=0;i<minimal_library.size;i++){
+		printDelaney(minimal_library.collection + i);
+	}
+	int frequentie[48];
+	for(i=0;i<48;i++){
+		frequentie[i]=0;
+	}
+	for(i=0;i<minimal_library.size;i++){
+		frequentie[(minimal_library.collection + i)->size-1]++;
+	}
+	
+	for(i=0;i<48;i++){
+		if(frequentie[i])
+			fprintf(stderr, "%d symbols with %d chambers\n", frequentie[i], i+1);
+	}
+	
+	/*
+	struct delaney symbol;
+	basicDelaney(&symbol);
+	printDelaney(&symbol);*/
+	/*
+	struct delaney symbol;
+	int i;
+	
+	symbol.size=6;
+	symbol.m01[0]=4;
+	symbol.m01[1]=8;
+	symbol.m01[2]=8;
+	symbol.m01[3]=4;
+	symbol.m01[4]=8;
+	symbol.m01[5]=8;
+	
+	symbol.chambers[0][0]=0; symbol.chambers[0][1]=3; symbol.chambers[0][2]=1; 
+	symbol.chambers[1][0]=1; symbol.chambers[1][1]=2; symbol.chambers[1][2]=0; 
+	symbol.chambers[2][0]=2; symbol.chambers[2][1]=1; symbol.chambers[2][2]=5; 
+	symbol.chambers[3][0]=3; symbol.chambers[3][1]=0; symbol.chambers[3][2]=4; 
+	symbol.chambers[4][0]=4; symbol.chambers[4][1]=5; symbol.chambers[4][2]=3; 
+	symbol.chambers[5][0]=5; symbol.chambers[5][1]=4; symbol.chambers[5][2]=2; 
+	
+	printDelaney(&symbol);
+	
+	struct delaney min_symbol;
+	
+	minimal_delaney(&symbol,  &min_symbol);
+	printDelaney(&min_symbol);*/
         return 0;
 }
