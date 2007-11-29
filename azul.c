@@ -47,6 +47,7 @@ int counter = 0;
 int counter2 = 0;
 int counter3 = 0;
 int counter4 = 0;
+int counter5 = 0;
 
 /*****************************************************************************/
 /* Collapses the two chambers and if this method returns true then partition
@@ -511,7 +512,8 @@ void checknumbers(int array[]){
 		create_bucket_collection(&coll, array);
 		counter2=0;
 		assign_m01(ass, 0, &coll);
-		fprintf(stderr, "%d : %d\n", counter, counter2);
+		fprintf(stderr, "%2d) %3d canonical strings leading to %3d symbols\n", counter, counter2, counter4 - counter5);
+		counter5 = counter4;
 	}
 }
 
@@ -538,7 +540,7 @@ int main()
                 array[i]=MIN;
         while(array[SIZE - 1] < SIZE)
                 tick(array, SIZE - 1);
-	fprintf(stderr, "Found %d canonical circular strings\n", counter3);
+	fprintf(stderr, "\nFound %d canonical circular strings\n", counter3);
 	fprintf(stderr, "Found %d symbols\n", counter4);
 	fprintf(stderr, "Found %d canonical symbols\n", library.size);
 	struct delaney temp_minimal;
@@ -546,7 +548,7 @@ int main()
 		minimal_delaney(library.collection+i,&temp_minimal);
 		add_to_minimal_library(&temp_minimal);
 	}
-        fprintf(stderr, "Found %d minimal, canonical symbols\n", minimal_library.size);
+        fprintf(stderr, "Found %d minimal, canonical symbols\n\n", minimal_library.size);
 	for(i=0;i<minimal_library.size;i++){
 		printDelaney(minimal_library.collection + i);
 	}
