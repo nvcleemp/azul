@@ -1,12 +1,10 @@
 /*
- *  m01.c
+ *  azul.c
  *  
  *
  *  Created by Nico Van Cleemput on 07/11/07.
  * 
- *  Gives the solutions for
- *  1/x_1 + .... + 1/x_(SIZE)=1
- *  with x_i from MIN to MAX using STEP.
+ *  gcc azul.c utility.c basicmath.c -o azul -Wall
  *
  */
 
