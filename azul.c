@@ -594,5 +594,5 @@ int main()
 	
 	minimal_delaney(&symbol,  &min_symbol);
 	printDelaney(&min_symbol);*/
-        return 0;
+	return 0;
 }
