@@ -4,7 +4,7 @@
  *
  *  Created by Nico Van Cleemput on 07/11/07.
  * 
- *  gcc azul.c utility.c basicmath.c -o azul -Wall
+ *  gcc azul.c basicmath.c -o azul -Wall
  *
  */
 
