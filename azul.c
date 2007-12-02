@@ -428,37 +428,37 @@ void basicDelaney(struct delaney *symbol){
 	}
 }
 
-int isCanonical(int* circularAssignment){
+int isCanonicalCircularString(int* circularString){
 	int i;
 	for(i = 1; i<8; i++){
 		int j = 0;
-		while(j < 8 && *(circularAssignment + j) == *(circularAssignment + (j + i)%8))
+		while(j < 8 && *(circularString + j) == *(circularString + (j + i)%8))
 			j++;
-		if(j<8 && *(circularAssignment + j) > *(circularAssignment + (j + i)%8)) {
+		if(j<8 && *(circularString + j) > *(circularString + (j + i)%8)) {
 			return 0; //not canonical
 		}
 	}
 	return 1;
 }
 
-void assign_m01(int* circularAssignment, int position, struct bucket_collection *collection){
+void assign_m01(int* circularString, int position, struct bucket_collection *collection){
 	int i;
 	for(i = 0; i< collection->collection_size;i++){
 		if((collection->collection + i)->size>0){
-			*(circularAssignment + position) = (collection->collection + i)->colour;
+			*(circularString + position) = (collection->collection + i)->colour;
 			(collection->collection + i)->size--;
 			if(position<7)
-				assign_m01(circularAssignment, position+1, collection);
+				assign_m01(circularString, position+1, collection);
 			else {
 				//fprintf(stderr, "new circular string: %d - %d\n", counter, ++counter2);
-				if(isCanonical(circularAssignment)){
+				if(isCanonicalCircularString(circularString)){
 					counter3++;
 					counter2++;
 					//fprintf(stdout, "%2d - %3d[%3d])\t", counter, counter2, counter3);
-					//printintarray(circularAssignment, 8);
+					//printintarray(circularString, 8);
 					struct delaney symbol;
 					basicDelaney(&symbol);
-					fill_m01(circularAssignment,&symbol);
+					fill_m01(circularString,&symbol);
 					//printDelaney(&symbol);
 					complete_sigma0(&symbol);
 				}
