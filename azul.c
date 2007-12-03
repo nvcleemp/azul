@@ -292,17 +292,17 @@ void printDelaney(struct delaney *symbol){
 int check_sigma0sigma1orbit(struct delaney *symbol, int chamber){
 	int j;
 	for(j = 0; j<2; j++){
-		int i = 0;
+		int i = j;
 		int next = symbol->chambers[chamber][i];
 		int size = 1;
-		while(next != -1 && next != chamber && symbol->m01[next]==symbol->m01[chamber]){
+		while(next != -1 && (next != chamber || i!=(j+1)%2) && symbol->m01[next]==symbol->m01[chamber]){
 			i = (i+1)%2;
 			size++;
 			next = symbol->chambers[next][i];
 		}
-		if(next != -1 && next != chamber)
+		if(next != -1 && (next != chamber || i!=(j+1)%2))
 			return 0;
-		if(next == chamber && (2*symbol->m01[chamber])%size!=0)
+		if(next == chamber && i==(j+1)%2 && (2*symbol->m01[chamber])%size!=0)
 			return 0;
 		else if(size > 2*symbol->m01[chamber])
 			return 0;
@@ -315,14 +315,9 @@ void complete_sigma0(struct delaney *symbol){
 	while(symbol->chambers[i][0]!=-1 && i<47)
 		i+=4;
 	if(i==48){
-		int j = 16;
-		while(j<47 && check_sigma0sigma1orbit(symbol, j))
-			j += 4;
-		if(j==48){
-			//new symbol!
-			counter4++;
-			add_to_library(symbol);
-		}
+		//new symbol!
+		counter4++;
+		add_to_library(symbol);
 	} else {
 		//first try loop
 		symbol->chambers[i][0] = i;
