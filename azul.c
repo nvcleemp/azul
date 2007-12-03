@@ -463,7 +463,7 @@ void assign_m01(int* circularString, int position, struct bucket_collection *col
 	}
 }
 
-void create_bucket_collection(struct bucket_collection *collection, int array[]){
+void createBucketCollection(struct bucket_collection *collection, int array[]){
 	int i;
 	collection->collection_size = 1;
 	(collection->collection + collection->collection_size - 1)->colour=array[7];
@@ -504,7 +504,7 @@ void checknumbers(int array[]){
 		int ass[8];
 		ass[0] = 4;
 		struct bucket_collection coll;
-		create_bucket_collection(&coll, array);
+		createBucketCollection(&coll, array);
 		counter2=0;
 		assign_m01(ass, 0, &coll);
 		fprintf(stderr, "%2d) %3d canonical strings leading to %3d symbols\n", counter, counter2, counter4 - counter5);
