@@ -50,7 +50,8 @@ int counter4 = 0;
 int counter5 = 0;
 
 /*****************************************************************************/
-/* Collapses the two chambers and if this method returns true then partition
+/*
+ * Collapses the two chambers and if this method returns true then partition
  * contains the resulting partition.
  */
 int collapse(struct delaney *symbol, int chamber1, int chamber2, int* partition){
@@ -115,6 +116,9 @@ int collapse(struct delaney *symbol, int chamber1, int chamber2, int* partition)
 	return 1;
 }
 
+/*
+ * Constructs the minimal Delaney symbol of symbol by adding symmetry
+ */
 void minimal_delaney(struct delaney *symbol, struct delaney *minimal_symbol){
 	int size = symbol->size;
 	int partition[size];
@@ -162,7 +166,9 @@ void minimal_delaney(struct delaney *symbol, struct delaney *minimal_symbol){
 }
 
 /*****************************************************************************/
-/* positive when symbol1 > symbol2
+
+/*
+ * positive when symbol1 > symbol2
  * 0 when symbol1 == symbol2
  * negative when symbol1 < symbol2
  */
@@ -187,7 +193,8 @@ int compare(struct delaney *symbol1, struct delaney *symbol2){
 	return 0;
 }
 
-/* When this method returns relabelling will contain a canonical relabelling of the chambers 
+/*
+ * When this method returns relabelling will contain a canonical relabelling of the chambers 
  * that gives the chamber 'start' the label '0'.
  * This relabelling is based on a DFS that choses the children to visit in the order sigma_0 .. sigma_2
  */
@@ -217,7 +224,8 @@ void canonical_chamber_relabelling(struct delaney *symbol, int *relabelling, int
 	}
 }
 
-/* Applies the relabelling to origin and fills image
+/*
+ * Applies the relabelling to origin and fills image
  */
 void apply_relabelling(struct delaney *origin, int *relabelling, struct delaney *image){
 	int reverse_labelling[48];
@@ -234,7 +242,8 @@ void apply_relabelling(struct delaney *origin, int *relabelling, struct delaney 
 	}
 }
 
-/*canon_symbol contains the canonical form of symbol when this method returns
+/*
+ * canon_symbol contains the canonical form of symbol when this method returns
  */
 void canonical_form(struct delaney *symbol, struct delaney *canon_symbol){
 	int i;
@@ -289,6 +298,9 @@ void printDelaney(struct delaney *symbol){
 	fprintf(stdout, "\n\n");
 }
 
+/*
+ * Check to see if m01 is constant on the sigma_0 sigma_1 - orbit through chamber and checks the size of that orbit.
+ */
 int check_sigma0sigma1orbit(struct delaney *symbol, int chamber){
 	int j;
 	for(j = 0; j<2; j++){
@@ -310,6 +322,9 @@ int check_sigma0sigma1orbit(struct delaney *symbol, int chamber){
 	return 1;
 }
 
+/*
+ * Construct the remaining sigma_0 edges.
+ */
 void complete_sigma0(struct delaney *symbol){
 	int i = 16;
 	while(symbol->chambers[i][0]!=-1 && i<47)
@@ -380,6 +395,9 @@ void complete_sigma0(struct delaney *symbol){
 	}
 }
 
+/*
+ * Complete the Delaney symbol with the calculated m01 values.
+ */
 void fill_m01(int *m01, struct delaney *symbol){
 	int i, j;
 	for(i=0; i<8; i++)
@@ -387,6 +405,9 @@ void fill_m01(int *m01, struct delaney *symbol){
 			symbol->m01[16 + i*4 + j] = m01[i];
 }
 
+/*
+ * Construct the basic Delaney symbol for the tiling. See text.
+ */
 void basicDelaney(struct delaney *symbol){
 	int i;
 	symbol->size = 48;
@@ -423,6 +444,9 @@ void basicDelaney(struct delaney *symbol){
 	}
 }
 
+/*
+ * Check to see if the given circular string is canonical.
+ */
 int isCanonicalCircularString(int* circularString){
 	int i;
 	for(i = 1; i<8; i++){
@@ -436,6 +460,9 @@ int isCanonicalCircularString(int* circularString){
 	return 1;
 }
 
+/*
+ * Construct all the canonical circular strings and create the corresponding Delaney symbols
+ */
 void assign_m01(int* circularString, int position, struct bucket_collection *collection){
 	int i;
 	for(i = 0; i< collection->collection_size;i++){
@@ -463,6 +490,9 @@ void assign_m01(int* circularString, int position, struct bucket_collection *col
 	}
 }
 
+/*
+ * Creates a bucket collection based on the given array of numbers. This collection can then be used to enumerate all the circular strings.
+ */
 void createBucketCollection(struct bucket_collection *collection, int array[]){
 	int i;
 	collection->collection_size = 1;
@@ -479,6 +509,9 @@ void createBucketCollection(struct bucket_collection *collection, int array[]){
 	}
 }
 
+/*
+ * Check to see if the numbers satisfie condition D3 
+ */
 void checknumbers(int array[]){
 	int i = 0;
 	
