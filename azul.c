@@ -32,6 +32,8 @@ struct delaney{
 	int chambers[48][3];
 	
 	int m01[48];
+	
+	int marker[48];
 };
 
 struct delaney_collection{
@@ -296,6 +298,63 @@ void printDelaney(struct delaney *symbol){
 		fprintf(stdout, "| %2d | %2d | %2d | %2d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m01[i], 3);
 	fprintf(stdout, "|===============================|\n");
 	fprintf(stdout, "\n\n");
+}
+
+void markorbit(struct delaney *symbol, int chamber, int i, int j){
+	symbol->marker[chamber]=1;
+	symbol->marker[symbol->chambers[chamber][i]]=1;
+	int next = symbol->chambers[symbol->chambers[chamber][i]][j];
+	while(next!=chamber){
+		symbol->marker[next]=1;
+		symbol->marker[symbol->chambers[next][i]]=1;
+		next = symbol->chambers[symbol->chambers[next][i]][j];	
+	}
+}
+
+void exportDelaney(struct delaney *symbol){
+	int i,j;
+	//size information
+	fprintf(stdout, "<1.1:%d 2:", symbol->size);
+	
+	//sigma
+	fprintf(stdout, "%d", symbol->chambers[0][0]+1);
+	for(i = 1; i < symbol->size; i++){
+		if(symbol->chambers[i][0] >= i)
+			fprintf(stdout, " %d", symbol->chambers[i][0]+1);
+	}
+	for(i = 1; i<3; i++){
+		fprintf(stdout, ",%d", symbol->chambers[0][i]+1);
+		for(j = 1; j < symbol->size; j++)
+			if(symbol->chambers[j][i] >= j)
+				fprintf(stdout, " %d", symbol->chambers[j][i]+1);
+	}
+	
+	//m01
+	fprintf(stdout, ":");
+	for(i = 0; i < symbol->size; i++)
+		symbol->marker[i]=0;
+		
+	for(i = 0; i < symbol->size; i++){
+		if(!symbol->marker[i]){
+			fprintf(stdout, " %d", symbol->m01[i]);
+			markorbit(symbol, i, 0, 1);
+		}
+	}
+	
+	
+	//m12
+	fprintf(stdout, ",");
+	for(i = 0; i < symbol->size; i++)
+		symbol->marker[i]=0;
+		
+	for(i = 0; i < symbol->size; i++){
+		if(!symbol->marker[i]){
+			fprintf(stdout, " %d", 3);
+			markorbit(symbol, i, 1, 2);
+		}
+	}
+	
+	fprintf(stdout, ">\n");
 }
 
 /*
@@ -578,7 +637,7 @@ int main()
 	}
         fprintf(stderr, "Found %d minimal, canonical symbols\n\n", minimal_library.size);
 	for(i=0;i<minimal_library.size;i++){
-		printDelaney(minimal_library.collection + i);
+		exportDelaney(minimal_library.collection + i);
 	}
 	int frequentie[48];
 	for(i=0;i<48;i++){
