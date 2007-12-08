@@ -161,7 +161,7 @@ void add2library(struct delaney *symbol){
 void fillm4orbit(struct delaney *symbol, int m, int value, int start){
 	symbol->m[start][m]=value;
 	int i=0, next = symbol->chambers[start][m];
-	while(next!=start && i!=1){
+	while(next!=start || i!=1){
 		symbol->m[next][m]=value;
 		i = (i+1)%2;
 		next = symbol->chambers[next][m+i];
