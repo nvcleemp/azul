@@ -149,13 +149,19 @@ void canonical_form(struct delaney *symbol, struct delaney *canon_symbol){
 	}
 }
 
-void add2library(struct delaney *symbol){
-	//canonical_form(symbol, library.collection + library.size);
-	//int i = 0;
-	//while(i<library.size && compare(library.collection + library.size, library.collection + i)!=0)
-	//	i++;
-	//if(i==library.size)
-	//	library.size++;
+/*
+ * returns 1 if a new entry was made in the library.
+ */
+int add2library(struct delaney *symbol){
+	canonical_form(symbol, library.collection + library.size);
+	int i = 0;
+	while(i<library.size && compare(library.collection + library.size, library.collection + i)!=0)
+		i++;
+	if(i==library.size) {
+		library.size++;
+		return 1;
+	} else
+		return 0;
 }
 
 void fillm4orbit(struct delaney *symbol, int m, int value, int start){
