@@ -270,13 +270,16 @@ void canonical_form(struct delaney *symbol, struct delaney *canon_symbol){
 	}
 }
 
-void add_to_library(struct delaney *symbol){
+int add_to_library(struct delaney *symbol){
 	canonical_form(symbol, library.collection + library.size);
 	int i = 0;
 	while(i<library.size && compare(library.collection + library.size, library.collection + i)!=0)
 		i++;
-	if(i==library.size)
+	if(i==library.size){
 		library.size++;
+		return 1;
+	} else
+		return 0;
 }
 
 void add_to_minimal_library(struct delaney *symbol){
