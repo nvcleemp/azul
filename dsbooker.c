@@ -34,6 +34,18 @@ int libMode = 0; //0 read-only, 1 append
 
 /*****************************************************************************/
 
+void printDelaney(struct delaney *symbol){
+	int i;
+	fprintf(stdout, "|    | s0 | s1 | s2 | m01 | m12 |\n");
+	fprintf(stdout, "|===============================|\n");
+	for(i = 0; i<symbol->size; i++)
+		fprintf(stdout, "| %2d | %2d | %2d | %2d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m[i][0], symbol->m[i][1]);
+	fprintf(stdout, "|===============================|\n");
+	fprintf(stdout, "\n\n");
+}
+
+/*****************************************************************************/
+
 void emptyDelaney(struct delaney *symbol, int size){
 	int i,j;
 	symbol->size = size;
