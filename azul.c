@@ -34,6 +34,7 @@ struct delaney{
 	int m01[48];
 	
 	int marker[48];
+	int marker2[48];
 };
 
 struct delaney_collection{
@@ -628,6 +629,68 @@ void tick(int array[], int position){
 	}
 }
 
+/*******************************************************/
+int counternotspanning = 0;
+int counterequivalentoctagons = 0;
+int countSpanningOctagons(struct delaney *symbol){
+	int i, j;
+	int spanning = 0;
+	int notspanning = 0;
+	int equivalent = 0;
+	//reset marker2
+	for(j = 0; j < symbol->size; j++)
+		symbol->marker2[j]=0;
+
+	for(i=0; i< symbol->size; i++){
+		if(symbol->m01[i]==8 && !symbol->marker2[i]){
+			//reset marker
+			for(j = 0; j < symbol->size; j++)
+				symbol->marker[j]=0;
+			
+			symbol->marker2[i]=1;
+			markorbit(symbol, i, 1, 2);
+			int next = symbol->chambers[i][0];
+			j=0;
+			while(next != i || j!=1){
+				j = (j+1)%2;
+				markorbit(symbol, next, 1, 2);
+				symbol->marker2[next]=1;
+				next = symbol->chambers[next][j];
+			}
+			j=0;
+			while(j<symbol->size && symbol->marker[j])
+				j++;
+			if(j==symbol->size){
+				//found spanning octagon
+				spanning++;
+				
+				//reset marker
+				for(j = 0; j < symbol->size; j++)
+					symbol->marker[j]=0;
+				markorbit(symbol, i, 0, 1);
+				j=0;
+				while(j<symbol->size && !(symbol->marker2[j] && symbol->marker2[symbol->chambers[j][2]]))
+					j++;
+				if(j<symbol->size)
+					equivalent = 1;
+			} else {
+				notspanning++;
+			}
+		}
+	}
+	if(notspanning)
+		counternotspanning++;
+		
+	if(equivalent)
+		counterequivalentoctagons++;
+	
+	return spanning;
+
+}
+
+/*******************************************************/
+
+
 int main()
 {
 	
@@ -663,6 +726,14 @@ int main()
 		if(frequentie[i])
 			fprintf(stderr, "%d symbols with %d chambers\n", frequentie[i], i+1);
 	}
+	
+	for(i=0;i<minimal_library.size;i++){
+		if(countSpanningOctagons(minimal_library.collection + i)!=1){
+			fprintf(stderr, "Symbol with %d spanning octagons.\n", countSpanningOctagons(minimal_library.collection + i));
+		}
+	}
+	fprintf(stderr, "\nFound %d symbol%s that contain%s a not spanning octagon.\n", counternotspanning, counternotspanning == 1 ? "" : "s",  counternotspanning == 1 ? "s" : "");
+	fprintf(stderr, "\nFound %d symbol%s that contain%s equivalent spanning octagons.\n", counterequivalentoctagons, counterequivalentoctagons == 1 ? "" : "s",  counterequivalentoctagons == 1 ? "s" : "");
 	
 	/*
 	struct delaney symbol;
