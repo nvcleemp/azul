@@ -263,22 +263,18 @@ void canonical_form(struct delaney *symbol, struct delaney *canon_symbol){
 	int found=0; //true when we already found a possible candidate
 	struct delaney temp_delaney;
 	for(i=0; i<symbol->size; i++){
-		if(symbol->m[i][0]==4){
-			// all our symbol contain at least 2 fours so
-			// we can only have a canonical form if we start
-			// with such a chamber
-			canonical_chamber_relabelling(symbol, relabelling, i);
-			if(found){
-				apply_relabelling(symbol, relabelling, &temp_delaney);
-				if(compare(&temp_delaney, canon_symbol)<0)
-					apply_relabelling(symbol, relabelling, canon_symbol);
-			} else {
+		canonical_chamber_relabelling(symbol, relabelling, i);
+		if(found){
+			apply_relabelling(symbol, relabelling, &temp_delaney);
+			if(compare(&temp_delaney, canon_symbol)<0)
 				apply_relabelling(symbol, relabelling, canon_symbol);
-				found = 1;
-			}
+		} else {
+			apply_relabelling(symbol, relabelling, canon_symbol);
+			found = 1;
 		}
 	}
 }
+
 
 /*
  * returns 1 if a new entry was made in the library.
