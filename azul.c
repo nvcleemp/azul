@@ -316,10 +316,10 @@ void markorbit(struct delaney *symbol, int chamber, int i, int j){
 	}
 }
 
-void exportDelaney(struct delaney *symbol){
+void exportDelaneyNumbered(struct delaney *symbol, int nr1, int nr2){
 	int i,j;
 	//size information
-	fprintf(stdout, "<1.1:%d 2:", symbol->size);
+	fprintf(stdout, "<%d.%d:%d 2:", nr1, nr2, symbol->size);
 	
 	//sigma
 	fprintf(stdout, "%d", symbol->chambers[0][0]+1);
@@ -360,6 +360,10 @@ void exportDelaney(struct delaney *symbol){
 	}
 	
 	fprintf(stdout, ">\n");
+}
+
+void exportDelaney(struct delaney *symbol){
+	exportDelaneyNumbered(symbol, 1, 1);
 }
 
 /*
@@ -622,7 +626,7 @@ void tick(int array[], int position){
 	} else {
 		tick(array, position - 1);
 	}
-}    
+}
 
 int main()
 {
@@ -645,7 +649,7 @@ int main()
 	}
         fprintf(stderr, "Found %d minimal, canonical symbols\n\n", minimal_library.size);
 	for(i=0;i<minimal_library.size;i++){
-		exportDelaney(minimal_library.collection + i);
+		exportDelaneyNumbered(minimal_library.collection + i, 1, i);
 	}
 	int frequentie[48];
 	for(i=0;i<48;i++){
