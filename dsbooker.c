@@ -347,7 +347,7 @@ int readDelaney(char *filename){
 				while(j < 2){
 					while(fscanf(lib, "%d", &d1)){
 						fillm4orbit(&symbol, j, d1, i);
-						while(symbol.m[i][j]!=-1) i++;
+						while(i<symbol.size && symbol.m[i][j]!=-1) i++;
 					}
 					i=0;
 					j++;
