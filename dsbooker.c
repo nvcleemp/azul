@@ -31,6 +31,7 @@ struct delaney_collection library;
 int calculateMinimal = 0;
 int format = 0; //0 for ds-format, 1 for human-readable table
 int libMode = 0; //0 read-only, 1 append
+int verbose = 0; //0 no, 1 print out info to stderr
 
 /*****************************************************************************/
 
@@ -372,14 +373,20 @@ int readDelaney(char *filename){
 				if(calculateMinimal){
 					struct delaney minsymbol;
 					minimal_delaney(&symbol, &minsymbol);
-					add2library(&minsymbol);
+					if(add2library(&minsymbol) && verbose){
+						fprintf(stderr, "Added the following minimal symbol to the library:\n");
+						printDelaney(&minsymbol);
+					}
 				} else {
-					add2library(&symbol);
+					if(add2library(&symbol) && verbose){
+						fprintf(stderr, "Added the following symbol to the library:\n");
+						printDelaney(&symbol);
+					}
 				}
 			}
 		}
 	}
-	fprintf(stderr, "Added %d symbols to library.\n", library.size);
+	fprintf(stderr, "Added %d symbols to the library.\n", library.size);
 	fclose(lib);
 	return 1;
 }
@@ -399,6 +406,9 @@ int main(int argc, char *argv[]){
 			case 't':
 				format = 1;
 				break;
+			case 'v':
+				verbose = 1;
+				break;
 			case 'a':
 				libMode = 1;
 				fprintf(stderr, "Warning: append currently not yet supported!\n");
@@ -411,6 +421,7 @@ int main(int argc, char *argv[]){
 				fprintf(stderr, "  -m\t: Create a library of minimal symbols\n");
 				fprintf(stderr, "  -f\t: Output file in ds format. Overwrites any t previously given.\n");
 				fprintf(stderr, "  -t\t: Output human-readable tables. Overwrites any f previously given.\n");
+				fprintf(stderr, "  -v\t: Print human-readable information to stderr.\n");
 				fprintf(stderr, "  -a\t: Append new symbols to the library file.\n");
 				fprintf(stderr, "  -h\t: Print this help and return.\n");
 				return 0;
