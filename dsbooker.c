@@ -192,6 +192,12 @@ int compare(struct delaney *symbol1, struct delaney *symbol2){
 	if(i<symbol1->size)
 		return (symbol1->m[i][0] - symbol2->m[i][0]);
 		
+	i=0;
+	while(i<symbol1->size && symbol1->m[i][1] == symbol2->m[i][1])
+		i++;
+	if(i<symbol1->size)
+		return (symbol1->m[i][1] - symbol2->m[i][1]);
+		
 	int j;
 	for(j=0;j<3;j++){
 		i=0;
