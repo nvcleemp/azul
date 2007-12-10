@@ -368,9 +368,18 @@ int readDelaney(char *filename){
 					while(j<2 && (c=getc(lib))!=',');
 				}
 				while((c=getc(lib))!='>');
+				
+				if(calculateMinimal){
+					struct delaney minsymbol;
+					minimal_delaney(&symbol, &minsymbol);
+					add2library(&minsymbol);
+				} else {
+					add2library(&symbol);
+				}
 			}
 		}
 	}
+	fprintf(stderr, "Added %d symbols to library.\n", library.size);
 	fclose(lib);
 	return 1;
 }
