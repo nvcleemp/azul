@@ -50,6 +50,8 @@ int counter2 = 0;
 int counter3 = 0;
 int counter4 = 0;
 int counter5 = 0;
+int countercanonical = 0;
+int countercanonical2 = 0;
 
 /*****************************************************************************/
 /*
@@ -394,7 +396,8 @@ void complete_sigma0(struct delaney *symbol){
 	if(i==48){
 		//new symbol!
 		counter4++;
-		add_to_library(symbol);
+		if(add_to_library(symbol))
+			countercanonical++;
 	} else {
 		//first try loop
 		symbol->chambers[i][0] = i;
@@ -602,8 +605,10 @@ void checknumbers(int array[]){
 		createBucketCollection(&coll, array);
 		counter2=0;
 		assign_m01(ass, 0, &coll);
-		fprintf(stderr, "%2d) %3d canonical strings leading to %3d symbols\n", counter, counter2, counter4 - counter5);
+		fprintf(stderr, "%2d) %3d canonical strings leading to %3d symbols, %3d canonical. ", counter, counter2, counter4 - counter5, countercanonical - countercanonical2);
+		fprintf(stderr, "(%2d %2d %2d %2d %2d %2d %2d %2d)\n", array[0], array[1], array[2], array[3], array[4], array[5], array[6], array[7]);
 		counter5 = counter4;
+		countercanonical2 = countercanonical;
 	}
 }
 
