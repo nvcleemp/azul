@@ -13,12 +13,12 @@
 
 struct delaney{
 	int size;
-	int chambers[48][3];
+	int chambers[60][3];
 	
-	int m[48][2];
+	int m[60][2];
 	
-	int marker[48];
-	int marker2[48];
+	int marker[60];
+	int marker2[60];
 };
 
 struct delaney_collection{
