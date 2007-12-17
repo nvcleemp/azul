@@ -386,7 +386,8 @@ int readDelaney(char *filename){
 			}
 		}
 	}
-	fprintf(stderr, "Added %d symbols to the library.\n", library.size);
+	if(verbose)
+		fprintf(stderr, "Added %d symbols to the library.\n", library.size);
 	fclose(lib);
 	return 1;
 }
