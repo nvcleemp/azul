@@ -298,6 +298,39 @@ int add2library(struct delaney *symbol){
 		return 0;
 }
 
+void printOrbit(struct delaney *symbol, int s1, int s2){
+	int i, chamber=0;
+	int sigmas[2];
+	sigmas[0]=s1;
+	sigmas[1]=s2;
+	fprintf(stderr, "s%ds%d-orbits\n", s1,s2);
+	fprintf(stderr, "===========\n");
+	fprintf(stderr, "symbol size = %d\n", symbol->size);
+	//set markers to 0
+	for(i=0; i<symbol->size; i++) symbol->marker[i]=0;
+	while(chamber<symbol->size){
+		if(!(symbol->marker[chamber])){
+			if(s1-s2>1 || s2-s1>1)
+				fprintf(stderr, "m{%d,%d} = 2\n", s1, s2);
+			else
+				fprintf(stderr, "m{%d,%d} = %d\n", s1, s2, symbol->m[chamber][s1<s2 ? s1 : s2]);
+			fprintf(stderr, "%d", chamber);
+			int j=0, next = symbol->chambers[chamber][sigmas[j]], size = 0;
+			while(next!=chamber || j!=1){
+				fprintf(stderr, " -> %d", next);
+				symbol->marker[next]=1;
+				if(j) size++;
+				j = (j+1)%2;
+				next = symbol->chambers[next][sigmas[j]];
+			}
+			fprintf(stderr, " -> %d\n", next);
+			fprintf(stderr, "orbit size = %d\n\n", ++size);
+			symbol->marker[chamber]=1;
+		}
+		chamber++;
+	}
+}
+
 void fillm4orbit(struct delaney *symbol, int m, int value, int start){
 	symbol->m[start][m]=value;
 	int i=0, next = symbol->chambers[start][m];
