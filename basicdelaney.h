@@ -42,6 +42,10 @@ void exportDelaney(DELANEY *symbol, FILE *f);
 
 void exportDelaneyNumbered(DELANEY *symbol, int nr1, int nr2, FILE *f);
 
+int readSingleDelaney(DELANEY *symbol, FILE *f);
+
+void fillm4orbit(DELANEY *symbol, int m, int value, int start);
+
 void emptyDelaney(DELANEY *symbol, int size);
 
 int collapse(DELANEY *symbol, int chamber1, int chamber2, int* partition);

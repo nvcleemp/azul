@@ -55,16 +55,6 @@ void printOrbit(DELANEY *symbol, int s1, int s2){
 	}
 }
 
-void fillm4orbit(DELANEY *symbol, int m, int value, int start){
-	symbol->m[start][m]=value;
-	int i=0, next = symbol->chambers[start][m];
-	while(next!=start || i!=1){
-		symbol->m[next][m]=value;
-		i = (i+1)%2;
-		next = symbol->chambers[next][m+i];
-	}
-}
-
 int readDelaney(char *filename){
 	int c;
 	int offered = 0;
@@ -157,75 +147,6 @@ int readDelaney(char *filename){
 	return 1;
 }
 
-int readSingleDelaney(DELANEY *symbol, FILE *f){
-	int c;
-	while((c=getc(f))!='<')
-		if(c==EOF)
-			return EOF;
-
-	/******************************/
-	int d1, d2;
-	if(fscanf(f, "%d.%d:", &d1, &d2)==0){
-		fprintf(stderr, "Error: Illegal format: Must start with number.number.\n");
-		return 1;
-	}
-	/******************************/
-	if(fscanf(f, "%d", &d1)==0){
-		fprintf(stderr, "Error: Illegal format. Cannot read size.\n");
-		return 1;
-	}
-	emptyDelaney(symbol, d1);
-	if(fscanf(f, "%d", &d1) && d1 != 2){
-		fprintf(stderr, "Error: Currently only Delaney symbols with dimension 2 are supported.\n");
-		return 1;
-	}
-	while((c=getc(f))!=':');
-	/******************************/
-	int i = 0, j=0;
-	while(j < 3){
-		while(fscanf(f, "%d", &d1)){
-			if(d1-1>=symbol->size || i>=symbol->size){
-				fprintf(stderr, "Error: Illegal format. Indices grow too large while building sigma_%d-functions: %d and %d, while size is %d.\n", j, d1, i, symbol->size);
-				return 0;
-			}
-			symbol->chambers[i][j]=d1-1;
-			symbol->chambers[d1-1][j]=i;
-			while(symbol->chambers[i][j]!=-1) i++;
-		}
-		i=0;
-		j++;
-		while(j<3 && (c=getc(f))!=',');
-	}
-	while((c=getc(f))!=':');
-	/******************************/
-	i = 0; j=0;
-	while(j < 2){
-		while(fscanf(f, "%d", &d1)){
-			fillm4orbit(symbol, j, d1, i);
-			while(i<symbol->size && symbol->m[i][j]!=-1) i++;
-		}
-		i=0;
-		j++;
-		while(j<2 && (c=getc(f))!=',');
-	}
-	while((c=getc(f))!='>');
-	
-	if(calculateMinimal){
-		DELANEY minsymbol;
-		minimal_delaney(symbol, &minsymbol);
-		if(addSymbol2Library(&minsymbol, &library) && verbose){
-			fprintf(stderr, "Added the following minimal symbol to the library:\n");
-			printDelaney(&minsymbol, stderr);
-		}
-	} else {
-		if(addSymbol2Library(symbol, &library) && verbose){
-			fprintf(stderr, "Added the following symbol to the library:\n");
-			printDelaney(symbol, stderr);
-		}
-	}
-	
-	return 1;
-}
 
 int domain(){
 
