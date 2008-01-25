@@ -83,7 +83,7 @@ void exportDelaneyNumbered(DELANEY *symbol, int nr1, int nr2, FILE *f){
 		}
 	}
 	
-	fprintf(stdout, ">\n");
+	fprintf(f, ">\n");
 }
 
 /*****************************************************************************/
