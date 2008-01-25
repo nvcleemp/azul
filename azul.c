@@ -440,29 +440,27 @@ int countSpanningOctagons(DELANEY *symbol){
 	int spanning = 0;
 	int notspanning = 0;
 	int equivalent = 0;
-	int marker[symbol->size];
-	int marker2[symbol->size];
+	int marker[symbol->size]; //used to check if octagon is spanning (all vertices in octagon)
+	int marker2[symbol->size]; //used to mark a single octagon
+	int marker3[symbol->size]; //used to track which octagons are already visited
 	
-	//reset marker2
+	//reset marker3
 	for(j = 0; j < symbol->size; j++)
-		marker2[j]=0;
+		marker3[j]=0;
 
 	for(i=0; i< symbol->size; i++){
-		if(symbol->m[i][0]==8 && !marker2[i]){
+		if(symbol->m[i][0]==8 && !marker3[i]){
+			markorbit(symbol, marker3, i, 0, 1, 0); //visit this octagon
+			markorbit(symbol, marker2, i, 0, 1, 1); //track this octagon
+
 			//reset marker
 			for(j = 0; j < symbol->size; j++)
 				marker[j]=0;
 			
-			marker2[i]=1;
-			markorbit(symbol, marker, i, 1, 2, 0);
-			int next = symbol->chambers[i][0];
-			j=0;
-			while(next != i || j!=1){
-				j = (j+1)%2;
-				markorbit(symbol, marker, next, 1, 2, 0);
-				marker2[next]=1;
-				next = symbol->chambers[next][j];
-			}
+			for(j=0;j<symbol->size;j++)
+				if(marker2[j] && !marker[j])
+					markorbit(symbol, marker, j, 1, 2, 0);
+
 			j=0;
 			while(j<symbol->size && marker[j])
 				j++;
@@ -470,10 +468,6 @@ int countSpanningOctagons(DELANEY *symbol){
 				//found spanning octagon
 				spanning++;
 				
-				//reset marker
-				for(j = 0; j < symbol->size; j++)
-					marker[j]=0;
-				markorbit(symbol, marker, i, 0, 1, 0);
 				j=0;
 				while(j<symbol->size && !(marker2[j] && marker2[symbol->chambers[j][2]]))
 					j++;
@@ -588,9 +582,9 @@ int main(int argc, char *argv[])
 	
 	fprintf(stderr, "\nLooking for spanning octagons in canonical symbols.\n");
 	
-	for(i=0;i<library.size;i++){
-		if(countSpanningOctagons(library.collection + i)!=1){
-			fprintf(stderr, "Symbol with %d spanning octagons.\n", countSpanningOctagons(library.collection + i));
+	for(i=0;i<minimal_library.size;i++){
+		if(countSpanningOctagons(minimal_library.collection + i)!=1){
+			fprintf(stderr, "Symbol with %d spanning octagons.\n", countSpanningOctagons(minimal_library.collection + i));
 		}
 	}
 	fprintf(stderr, "\nFound %d symbol%s that contain%s a not spanning octagon.\n", counternotspanning, counternotspanning == 1 ? "" : "s",  counternotspanning == 1 ? "s" : "");
