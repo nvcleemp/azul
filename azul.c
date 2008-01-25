@@ -496,8 +496,45 @@ int countSpanningOctagons(DELANEY *symbol){
 
 /*******************************************************/
 
-int main()
+int main(int argc, char *argv[])
 {
+	int export_minimal = 0;
+	int export_octagon = 0;
+	int export_azulenoid = 0;
+	int c, error = 0;
+	while (--argc > 0 && (*++argv)[0] == '-'){
+		while (c = *++argv[0])
+			switch (c) {
+			case 'm':
+				export_minimal = 1;
+				break;
+			case 'o':
+				export_octagon = 1;
+				break;
+			case 'a':
+				export_azulenoid = 1;
+				break;
+			case 'h':
+				//print help
+				fprintf(stderr, "The program azul calculates toroidal azulenoids.\n");
+				fprintf(stderr, "Usage: azul [-moah]\n\n");
+				fprintf(stderr, "Valid options:\n");
+				fprintf(stderr, "  -m\t: Output minimal symbols.\n");
+				fprintf(stderr, "  -o\t: Output the calculated octagon tilings.\n");
+				fprintf(stderr, "  -a\t: Output the calculated azulenoids.\n");
+				fprintf(stderr, "  -h\t: Print this help and return.\n");
+				return 0;
+			default:
+				fprintf(stderr, "azul: illegal option %c\n", c);
+				argc = 0;
+				error = 1;
+				break;
+			}
+	}
+	if(error || argc != 0){
+		fprintf(stderr, "Usage: azul [options]. Use azul -h for more information.\n");
+		return 1;
+	}
 	
 	library.size=0;
 	minimal_library.size=0;
@@ -524,11 +561,14 @@ int main()
 		addSymbol2Library(&temp_minimal, &minimal_library);
 	}
 	fprintf(stderr, "Found %d minimal, canonical symbols\n\n", minimal_library.size);
-	/*
-	for(i=0;i<minimal_library.size;i++){
-		exportDelaneyNumbered(minimal_library.collection + i, i+1, i+1);
+	
+	if(export_octagon){
+		if(export_minimal)
+			exportLibrary(&minimal_library, 1);
+		else
+			exportLibrary(&library, 1);;
 	}
-	*/
+	
 	
 	//determine size of minimal symbols
 	int frequency[48];
@@ -568,11 +608,12 @@ int main()
 		addSymbol2Library(&temp_minimal, &minimal_azulenoid_library);
 	}
 	fprintf(stderr, "\nFound %d minimal, canonical azulenoids.\n", minimal_azulenoid_library.size);
-	/*	
-	for(i=0;i<minimal_azulenoid_library.size;i++){
-		exportDelaneyNumbered(minimal_azulenoid_library.collection + i, i+1, i+1);
+	if(export_azulenoid){
+		if(export_minimal)
+			exportLibrary(&minimal_azulenoid_library, 1);
+		else
+			exportLibrary(&azulenoid_library, 1);;
 	}
-	*/
 	
 	return 0;
 }
