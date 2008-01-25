@@ -21,29 +21,19 @@ int verbose = 0; //0 no, 1 print out info to stderr
 
 /*****************************************************************************/
 
-void markorbit(DELANEY *symbol, int chamber, int i, int j){
-	symbol->marker[chamber]=1;
-	symbol->marker[symbol->chambers[chamber][i]]=1;
-	int next = symbol->chambers[symbol->chambers[chamber][i]][j];
-	while(next!=chamber){
-		symbol->marker[next]=1;
-		symbol->marker[symbol->chambers[next][i]]=1;
-		next = symbol->chambers[symbol->chambers[next][i]][j];	
-	}
-}
-
 void printOrbit(DELANEY *symbol, int s1, int s2){
 	int i, chamber=0;
 	int sigmas[2];
+	int marker[symbol->size];
 	sigmas[0]=s1;
 	sigmas[1]=s2;
 	fprintf(stderr, "s%ds%d-orbits\n", s1,s2);
 	fprintf(stderr, "===========\n");
 	fprintf(stderr, "symbol size = %d\n", symbol->size);
 	//set markers to 0
-	for(i=0; i<symbol->size; i++) symbol->marker[i]=0;
+	for(i=0; i<symbol->size; i++) marker[i]=0;
 	while(chamber<symbol->size){
-		if(!(symbol->marker[chamber])){
+		if(!(marker[chamber])){
 			if(s1-s2>1 || s2-s1>1)
 				fprintf(stderr, "m{%d,%d} = 2\n", s1, s2);
 			else
@@ -52,14 +42,14 @@ void printOrbit(DELANEY *symbol, int s1, int s2){
 			int j=0, next = symbol->chambers[chamber][sigmas[j]], size = 0;
 			while(next!=chamber || j!=1){
 				fprintf(stderr, " -> %d", next);
-				symbol->marker[next]=1;
+				marker[next]=1;
 				if(j) size++;
 				j = (j+1)%2;
 				next = symbol->chambers[next][sigmas[j]];
 			}
 			fprintf(stderr, " -> %d\n", next);
 			fprintf(stderr, "orbit size = %d\n\n", ++size);
-			symbol->marker[chamber]=1;
+			marker[chamber]=1;
 		}
 		chamber++;
 	}

@@ -41,37 +41,25 @@ int counter5 = 0;
 int countercanonical = 0;
 int countercanonical2 = 0;
 
-/*****************************************************************************/
-
-void markorbit(DELANEY *symbol, int chamber, int i, int j){
-	symbol->marker[chamber]=1;
-	symbol->marker[symbol->chambers[chamber][i]]=1;
-	int next = symbol->chambers[symbol->chambers[chamber][i]][j];
-	while(next!=chamber){
-		symbol->marker[next]=1;
-		symbol->marker[symbol->chambers[next][i]]=1;
-		next = symbol->chambers[symbol->chambers[next][i]][j];	
-	}
-}
-
 /*
  * Check to see if m01 is constant on the sigma_0 sigma_1 - orbits and checks the size of the orbits.
  * Only for debugging purposes: can be removed if everything is OK.
  */
 int checkConsistency(DELANEY *symbol){
 	int i, chamber=0;
+	int marker[symbol->size];
 	//set markers to 0
-	for(i=0; i<symbol->size; i++) symbol->marker[i]=0;
+	for(i=0; i<symbol->size; i++) marker[i]=0;
 	while(chamber<symbol->size){
-		if(!(symbol->marker[chamber])){
+		if(!(marker[chamber])){
 			int j=0, next = symbol->chambers[chamber][j], size = 1;
 			while(next!=chamber || j!=1){
-				symbol->marker[next]=1;
+				marker[next]=1;
 				if(j) size++;
 				j = (j+1)%2;
 				next = symbol->chambers[next][j];
 			}
-			symbol->marker[chamber]=1;
+			marker[chamber]=1;
 			if((2*symbol->m[chamber][0])%size!=0) return 0;
 		}
 		chamber++;
@@ -452,28 +440,31 @@ int countSpanningOctagons(DELANEY *symbol){
 	int spanning = 0;
 	int notspanning = 0;
 	int equivalent = 0;
+	int marker[symbol->size];
+	int marker2[symbol->size];
+	
 	//reset marker2
 	for(j = 0; j < symbol->size; j++)
-		symbol->marker2[j]=0;
+		marker2[j]=0;
 
 	for(i=0; i< symbol->size; i++){
-		if(symbol->m[i][0]==8 && !symbol->marker2[i]){
+		if(symbol->m[i][0]==8 && !marker2[i]){
 			//reset marker
 			for(j = 0; j < symbol->size; j++)
-				symbol->marker[j]=0;
+				marker[j]=0;
 			
-			symbol->marker2[i]=1;
-			markorbit(symbol, i, 1, 2);
+			marker2[i]=1;
+			markorbit(symbol, marker, i, 1, 2, 0);
 			int next = symbol->chambers[i][0];
 			j=0;
 			while(next != i || j!=1){
 				j = (j+1)%2;
-				markorbit(symbol, next, 1, 2);
-				symbol->marker2[next]=1;
+				markorbit(symbol, marker, next, 1, 2, 0);
+				marker2[next]=1;
 				next = symbol->chambers[next][j];
 			}
 			j=0;
-			while(j<symbol->size && symbol->marker[j])
+			while(j<symbol->size && marker[j])
 				j++;
 			if(j==symbol->size){
 				//found spanning octagon
@@ -481,10 +472,10 @@ int countSpanningOctagons(DELANEY *symbol){
 				
 				//reset marker
 				for(j = 0; j < symbol->size; j++)
-					symbol->marker[j]=0;
-				markorbit(symbol, i, 0, 1);
+					marker[j]=0;
+				markorbit(symbol, marker, i, 0, 1, 0);
 				j=0;
-				while(j<symbol->size && !(symbol->marker2[j] && symbol->marker2[symbol->chambers[j][2]]))
+				while(j<symbol->size && !(marker2[j] && marker2[symbol->chambers[j][2]]))
 					j++;
 				if(j<symbol->size)
 					equivalent = 1;

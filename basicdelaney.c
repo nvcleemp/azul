@@ -49,13 +49,14 @@ void exportDelaneyNumbered(DELANEY *symbol, int nr1, int nr2){
 	
 	//m01
 	fprintf(stdout, ":");
+	int marker[symbol->size];
 	for(i = 0; i < symbol->size; i++)
-		symbol->marker[i]=0;
+		marker[i]=0;
 		
 	for(i = 0; i < symbol->size; i++){
-		if(!symbol->marker[i]){
+		if(!marker[i]){
 			fprintf(stdout, " %d", symbol->m[i][0]);
-			markorbit(symbol, i, 0, 1);
+			markorbit(symbol, marker, i, 0, 1, 0);
 		}
 	}
 	
@@ -63,12 +64,12 @@ void exportDelaneyNumbered(DELANEY *symbol, int nr1, int nr2){
 	//m12
 	fprintf(stdout, ",");
 	for(i = 0; i < symbol->size; i++)
-		symbol->marker[i]=0;
+		marker[i]=0;
 		
 	for(i = 0; i < symbol->size; i++){
-		if(!symbol->marker[i]){
+		if(!marker[i]){
 			fprintf(stdout, " %d", symbol->m[i][1]);
-			markorbit(symbol, i, 1, 2);
+			markorbit(symbol, marker, i, 1, 2, 0);
 		}
 	}
 	
@@ -340,7 +341,7 @@ int addSymbol2Library(DELANEY *symbol, DELANEY_COLLECTION *library){
 int getChambersInOrbit(DELANEY *symbol, int start, int i, int j){
 	int marker[symbol->size];
 	int index;
-	mark_orbit(symbol, marker, start, i, j, 1);
+	markorbit(symbol, marker, start, i, j, 1);
 	int size = 0;
 	for(index = 0; index<symbol->size; index++)
 		if(marker[index])
@@ -357,7 +358,7 @@ int getOrbitSize(DELANEY *symbol, int start, int i, int j){
 	return size;
 }
 
-void mark_orbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clean){
+void markorbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clean){
 	//clean marker if needed
 	int index;
 	if(clean)

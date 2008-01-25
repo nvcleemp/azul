@@ -18,9 +18,6 @@ struct __delaney{
 	
 	int m[60][2];
 	
-	int marker[60];
-	int marker2[60];
-	
 	int comment1;
 	int comment2;
 };
@@ -62,6 +59,6 @@ int getChambersInOrbit(DELANEY *symbol, int start, int i, int j);
 
 int getOrbitSize(DELANEY *symbol, int start, int i, int j);
 
-void mark_orbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clean);
+void markorbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clean);
 
 #endif // end if not defined, and end the header file
