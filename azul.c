@@ -96,14 +96,12 @@ void insertAzulene(DELANEY *symbol){
 		
 		int start = symbol->chambers[(1+2*i)%16][2];
 		int newValue = symbol->m[start][0]+2*symbol->m[start][0]/getChambersInOrbit(symbol, start, 0, 1);
-		//fprintf(stderr, "DEBUG: %d / %d => %d\n", symbol->m01[start],getOrbitSize(symbol, start, 0, 1), symbol->m01[start]/getOrbitSize(symbol, start, 0, 1));
 		azulenoid.m[start][0]=newValue;
 		int j=0, next = symbol->chambers[start][0];
 		while(next!=start || j!=1){
 			azulenoid.m[next][0]=newValue;
 			j = (j+1)%2;
 			next = symbol->chambers[next][j];
-			//fprintf(stderr, "here, with %d and %d\n", next, j);
 		}
 		azulenoid.m[56][0]=newValue;
 		azulenoid.m[57][0]=newValue;
@@ -111,7 +109,6 @@ void insertAzulene(DELANEY *symbol){
 		j=0;
 		start = symbol->chambers[(6+2*i)%16][2];
 		newValue = azulenoid.m[start][0]+2*symbol->m[start][0]/getChambersInOrbit(symbol, start, 0, 1);
-		//fprintf(stderr, "DEBUG: %d / %d => %d\n", symbol->m01[start],getOrbitSize(symbol, start, 0, 1), symbol->m01[start]/getOrbitSize(symbol, start, 0, 1));
 		azulenoid.m[start][0]=newValue;
 		next = symbol->chambers[start][0];
 		while(next!=start || j!=1){
