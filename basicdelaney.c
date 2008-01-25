@@ -25,60 +25,60 @@ void printDelaney(DELANEY *symbol, FILE *f){
 	fprintf(f, "\n\n");
 }
 
-void exportLibrary(DELANEY_COLLECTION *library, int numbered){
+void exportLibrary(DELANEY_COLLECTION *library, int numbered, FILE *f){
 	int i;
 	for(i=0;i<library->size;i++){
 		if(numbered)
-			exportDelaneyNumbered(library->collection + i, i+1, i+1);
+			exportDelaneyNumbered(library->collection + i, i+1, i+1, f);
 		else
-			exportDelaney(library->collection + i);
+			exportDelaney(library->collection + i, f);
 	}
 }
 
-void exportDelaney(DELANEY *symbol){
-	exportDelaneyNumbered(symbol, symbol->comment1, symbol->comment2);
+void exportDelaney(DELANEY *symbol, FILE *f){
+	exportDelaneyNumbered(symbol, symbol->comment1, symbol->comment2, f);
 }
 
-void exportDelaneyNumbered(DELANEY *symbol, int nr1, int nr2){
+void exportDelaneyNumbered(DELANEY *symbol, int nr1, int nr2, FILE *f){
 	int i,j;
 	//size information
-	fprintf(stdout, "<%d.%d:%d 2:", nr1, nr2, symbol->size);
+	fprintf(f, "<%d.%d:%d 2:", nr1, nr2, symbol->size);
 	
 	//sigma
-	fprintf(stdout, "%d", symbol->chambers[0][0]+1);
+	fprintf(f, "%d", symbol->chambers[0][0]+1);
 	for(i = 1; i < symbol->size; i++){
 		if(symbol->chambers[i][0] >= i)
-			fprintf(stdout, " %d", symbol->chambers[i][0]+1);
+			fprintf(f, " %d", symbol->chambers[i][0]+1);
 	}
 	for(i = 1; i<3; i++){
-		fprintf(stdout, ",%d", symbol->chambers[0][i]+1);
+		fprintf(f, ",%d", symbol->chambers[0][i]+1);
 		for(j = 1; j < symbol->size; j++)
 			if(symbol->chambers[j][i] >= j)
-				fprintf(stdout, " %d", symbol->chambers[j][i]+1);
+				fprintf(f, " %d", symbol->chambers[j][i]+1);
 	}
 	
 	//m01
-	fprintf(stdout, ":");
+	fprintf(f, ":");
 	int marker[symbol->size];
 	for(i = 0; i < symbol->size; i++)
 		marker[i]=0;
 		
 	for(i = 0; i < symbol->size; i++){
 		if(!marker[i]){
-			fprintf(stdout, " %d", symbol->m[i][0]);
+			fprintf(f, " %d", symbol->m[i][0]);
 			markorbit(symbol, marker, i, 0, 1, 0);
 		}
 	}
 	
 	
 	//m12
-	fprintf(stdout, ",");
+	fprintf(f, ",");
 	for(i = 0; i < symbol->size; i++)
 		marker[i]=0;
 		
 	for(i = 0; i < symbol->size; i++){
 		if(!marker[i]){
-			fprintf(stdout, " %d", symbol->m[i][1]);
+			fprintf(f, " %d", symbol->m[i][1]);
 			markorbit(symbol, marker, i, 1, 2, 0);
 		}
 	}

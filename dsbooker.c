@@ -142,7 +142,7 @@ int readDelaney(char *filename){
 					if(addSymbol2Library(&symbol, &library) && verbose){
 						//fprintf(stderr, "Added the following symbol to the library:\n");
 						//printDelaney(&symbol);
-						exportDelaney(&symbol);
+						exportDelaney(&symbol, stdout);
 				
 					}
 				}

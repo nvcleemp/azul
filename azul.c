@@ -558,9 +558,9 @@ int main(int argc, char *argv[])
 	
 	if(export_octagon){
 		if(export_minimal)
-			exportLibrary(&minimal_library, 1);
+			exportLibrary(&minimal_library, 1, stdout);
 		else
-			exportLibrary(&library, 1);;
+			exportLibrary(&library, 1, stdout);
 	}
 	
 	
@@ -604,9 +604,9 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "\nFound %d minimal, canonical azulenoids.\n", minimal_azulenoid_library.size);
 	if(export_azulenoid){
 		if(export_minimal)
-			exportLibrary(&minimal_azulenoid_library, 1);
+			exportLibrary(&minimal_azulenoid_library, 1, stdout);
 		else
-			exportLibrary(&azulenoid_library, 1);;
+			exportLibrary(&azulenoid_library, 1, stdout);
 	}
 	
 	return 0;
