@@ -105,7 +105,7 @@ void emptyDelaney(DELANEY *symbol, int size){
  * contains the resulting partition.
  */
 int collapse(DELANEY *symbol, int chamber1, int chamber2, int* partition){
-	int stack[60 * 59][2];
+	int stack[(symbol->size) * ((symbol->size) - 1)][2];
 	int stacksize;
 	int i,j;
 	int size = symbol->size;
@@ -258,12 +258,12 @@ int compare(DELANEY *symbol1, DELANEY *symbol2){
  * This relabelling is based on a DFS that choses the children to visit in the order sigma_0 .. sigma_2
  */
 void canonical_chamber_relabelling(DELANEY *symbol, int *relabelling, int start){
-	int stack[60];
+	int stack[symbol->size];
 	int stacksize;
 	int i, j;
 	int visited[symbol->size];
 	int index = 0;
-	for(i=0; i<60; i++)
+	for(i=0; i<symbol->size; i++)
 		visited[i]=0;
 	
 	relabelling[index++] = start;

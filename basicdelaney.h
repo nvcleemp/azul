@@ -10,13 +10,16 @@
 #ifndef _BASICDELANEY_H // if not defined
 #define _BASICDELANEY_H // define BasicDelaney
 
+#define DELANEYSIZE 60
+#define COLLECTIONSIZE 2000
+
 #include <stdio.h>
 
 struct __delaney{
 	int size;
-	int chambers[60][3];
+	int chambers[DELANEYSIZE][3];
 	
-	int m[60][2];
+	int m[DELANEYSIZE][2];
 	
 	int comment1;
 	int comment2;
@@ -24,7 +27,7 @@ struct __delaney{
 
 struct __delaney_collection{
 	int size;
-	struct __delaney collection[2000];
+	struct __delaney collection[COLLECTIONSIZE];
 };
 
 typedef struct __delaney DELANEY;
