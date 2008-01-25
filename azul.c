@@ -29,22 +29,28 @@ struct bucket_collection{
 
 struct delaney{
 	int size;
-	int chambers[48][3];
+	int chambers[60][3];
 	
-	int m01[48];
+	int m01[60];
 	
-	int marker[48];
-	int marker2[48];
+	int marker[60];
+	int marker2[60];
 };
 
 struct delaney_collection{
 	int size;
-	struct delaney collection[623];
+	struct delaney collection[2000];
 };
+
+typedef struct delaney DELANEY;
 
 struct delaney_collection library;
 
 struct delaney_collection minimal_library;
+
+struct delaney_collection azulenoid_library;
+
+struct delaney_collection minimal_azulenoid_library;
 
 int counter = 0;
 int counter2 = 0;
@@ -59,8 +65,8 @@ int countercanonical2 = 0;
  * Collapses the two chambers and if this method returns true then partition
  * contains the resulting partition.
  */
-int collapse(struct delaney *symbol, int chamber1, int chamber2, int* partition){
-	int stack[48*47][2];
+int collapse(DELANEY *symbol, int chamber1, int chamber2, int* partition){
+	int stack[60*59][2];
 	int stacksize;
 	int i,j;
 	int size = symbol->size;
@@ -204,12 +210,12 @@ int compare(struct delaney *symbol1, struct delaney *symbol2){
  * This relabelling is based on a DFS that choses the children to visit in the order sigma_0 .. sigma_2
  */
 void canonical_chamber_relabelling(struct delaney *symbol, int *relabelling, int start){
-	int stack[48];
+	int stack[60];
 	int stacksize;
 	int i, j;
-	int visited[48];
+	int visited[60];
 	int index = 0;
-	for(i=0; i<48; i++)
+	for(i=0; i<60; i++)
 		visited[i]=0;
 	
 	relabelling[index++] = start;
@@ -233,12 +239,12 @@ void canonical_chamber_relabelling(struct delaney *symbol, int *relabelling, int
  * Applies the relabelling to origin and fills image
  */
 void apply_relabelling(struct delaney *origin, int *relabelling, struct delaney *image){
-	int reverse_labelling[48];
+	int reverse_labelling[60];
 	int i;
 	image->size = origin->size;
 	for(i=0; i<origin->size; i++)
 		reverse_labelling[relabelling[i]] = i;
-	
+
 	for(i=0; i<origin->size; i++){
 		image->m01[i] = origin->m01[relabelling[i]];
 		image->chambers[i][0] = reverse_labelling[origin->chambers[relabelling[i]][0]];
@@ -252,58 +258,61 @@ void apply_relabelling(struct delaney *origin, int *relabelling, struct delaney 
  */
 void canonical_form(struct delaney *symbol, struct delaney *canon_symbol){
 	int i;
-	int  relabelling[48];
+	int  relabelling[60];
 	int found=0; //true when we already found a possible candidate
 	struct delaney temp_delaney;
 	for(i=0; i<symbol->size; i++){
-		if(symbol->m01[i]==4){
-			// all our symbol contain at least 2 fours so
-			// we can only have a canonical form if we start
-			// with such a chamber
-			canonical_chamber_relabelling(symbol, relabelling, i);
-			if(found){
-				apply_relabelling(symbol, relabelling, &temp_delaney);
-				if(compare(&temp_delaney, canon_symbol)<0)
-					apply_relabelling(symbol, relabelling, canon_symbol);
-			} else {
+		canonical_chamber_relabelling(symbol, relabelling, i);
+		if(found){
+			apply_relabelling(symbol, relabelling, &temp_delaney);
+			if(compare(&temp_delaney, canon_symbol)<0)
 				apply_relabelling(symbol, relabelling, canon_symbol);
-				found = 1;
-			}
+		} else {
+			apply_relabelling(symbol, relabelling, canon_symbol);
+			found = 1;
 		}
 	}
 }
 
-int add_to_library(struct delaney *symbol){
-	canonical_form(symbol, library.collection + library.size);
+int addSymbol2Library(struct delaney *symbol, struct delaney_collection *library){
+	canonical_form(symbol, library->collection + library->size);
 	int i = 0;
-	while(i<library.size && compare(library.collection + library.size, library.collection + i)!=0)
+	while(i<library->size && compare(library->collection + library->size, library->collection + i)!=0)
 		i++;
-	if(i==library.size){
-		library.size++;
+	if(i==library->size){
+		library->size++;
 		return 1;
 	} else
 		return 0;
 }
 
-void add_to_minimal_library(struct delaney *symbol){
-        canonical_form(symbol, minimal_library.collection + minimal_library.size);
-        int i = 0;
-        while(i<minimal_library.size && compare(minimal_library.collection + minimal_library.size, minimal_library.collection + i)!=0)
-                i++;
-        if(i==minimal_library.size)
-                minimal_library.size++;
+int add_to_library(struct delaney *symbol){
+	return addSymbol2Library(symbol, &library);
 }
+
+int add_to_minimal_library(struct delaney *symbol){
+	return addSymbol2Library(symbol, &minimal_library);
+}
+
+int add_to_azulenoid_library(struct delaney *symbol){
+	return addSymbol2Library(symbol, &azulenoid_library);
+}
+
+int add_to_minimal_azulenoid_library(struct delaney *symbol){
+	return addSymbol2Library(symbol, &minimal_azulenoid_library);
+}
+
 
 /*****************************************************************************/
 
 void printDelaney(struct delaney *symbol){
 	int i;
-	fprintf(stdout, "|    | s0 | s1 | s2 | m01 | m12 |\n");
-	fprintf(stdout, "|===============================|\n");
+	fprintf(stderr, "|    | s0 | s1 | s2 | m01 | m12 |\n");
+	fprintf(stderr, "|===============================|\n");
 	for(i = 0; i<symbol->size; i++)
-		fprintf(stdout, "| %2d | %2d | %2d | %2d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m01[i], 3);
-	fprintf(stdout, "|===============================|\n");
-	fprintf(stdout, "\n\n");
+		fprintf(stderr, "| %2d | %2d | %2d | %2d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m01[i], 3);
+	fprintf(stderr, "|===============================|\n");
+	fprintf(stderr, "\n\n");
 }
 
 void markorbit(struct delaney *symbol, int chamber, int i, int j){
@@ -367,6 +376,172 @@ void exportDelaney(struct delaney *symbol){
 	exportDelaneyNumbered(symbol, 1, 1);
 }
 
+void copyDelaney(struct delaney *original, struct delaney *copy){
+	copy->size = original->size;
+	int i, j;
+	for(j=0;j<original->size;j++){
+		for(i=0;i<3;i++)
+			copy->chambers[j][i]=original->chambers[j][i];
+		copy->m01[j]=original->m01[j];
+	}
+}
+
+/*
+ * Check to see if m01 is constant on the sigma_0 sigma_1 - orbits and checks the size of the orbits.
+ */
+int checkConsistency(struct delaney *symbol){
+	int i, chamber=0;
+	//set markers to 0
+	for(i=0; i<symbol->size; i++) symbol->marker[i]=0;
+	while(chamber<symbol->size){
+		if(!(symbol->marker[chamber])){
+			int j=0, next = symbol->chambers[chamber][j], size = 1;
+			while(next!=chamber || j!=1){
+				symbol->marker[next]=1;
+				if(j) size++;
+				j = (j+1)%2;
+				next = symbol->chambers[next][j];
+			}
+			symbol->marker[chamber]=1;
+			if((2*symbol->m01[chamber])%size!=0) return 0;
+		}
+		chamber++;
+	}
+	return 1;
+}
+
+int getChambersInOrbit(struct delaney *symbol, int start, int i, int j){
+	int index;
+	for(index = 0; index<symbol->size; index++)
+		symbol->marker2[index]=0;
+	symbol->marker2[start]=1;
+	symbol->marker2[symbol->chambers[start][i]]=1;
+	int next = symbol->chambers[symbol->chambers[start][i]][j];
+	symbol->marker2[next]=1;
+	symbol->marker2[symbol->chambers[next][i]]=1;
+	while((next = symbol->chambers[symbol->chambers[next][i]][j])!=start) {
+		symbol->marker2[next]=1;
+		symbol->marker2[symbol->chambers[next][i]]=1;
+	}
+	int size = 0;
+	for(index = 0; index<symbol->size; index++)
+		if(symbol->marker2[index])
+			size++;
+	return size;
+}
+
+int getOrbitSize(struct delaney *symbol, int start, int i, int j){
+	int next = symbol->chambers[symbol->chambers[start][i]][j];
+	if(next == start)
+		return 1;
+	int size = 2;
+	while((next = symbol->chambers[symbol->chambers[next][i]][j])!=start) size++;
+	return size;
+}
+
+/*
+ * Insert azulene
+ */
+void insertAzulene(struct delaney *symbol){
+	int i, j;
+	for(i=0; i<8; i++){
+		struct delaney azulenoid;
+		copyDelaney(symbol, &azulenoid);
+		azulenoid.size=60;
+		for(j=1;j<7;j++) azulenoid.m01[(j+2*i)%16]=5;
+		for(j=7;j<17;j++) azulenoid.m01[(j+2*i)%16]=7;
+		for(j=48;j<52;j++) azulenoid.m01[j]=5;
+		for(j=52;j<56;j++) azulenoid.m01[j]=7;
+		
+		int start = symbol->chambers[(1+2*i)%16][2];
+		int newValue = symbol->m01[start]+2*symbol->m01[start]/getChambersInOrbit(symbol, start, 0, 1);
+		//fprintf(stderr, "DEBUG: %d / %d => %d\n", symbol->m01[start],getOrbitSize(symbol, start, 0, 1), symbol->m01[start]/getOrbitSize(symbol, start, 0, 1));
+		azulenoid.m01[start]=newValue;
+		int j=0, next = symbol->chambers[start][0];
+		while(next!=start || j!=1){
+			azulenoid.m01[next]=newValue;
+			j = (j+1)%2;
+			next = symbol->chambers[next][j];
+			//fprintf(stderr, "here, with %d and %d\n", next, j);
+		}
+		azulenoid.m01[56]=newValue;
+		azulenoid.m01[57]=newValue;
+
+		j=0;
+		start = symbol->chambers[(6+2*i)%16][2];
+		newValue = azulenoid.m01[start]+2*symbol->m01[start]/getChambersInOrbit(symbol, start, 0, 1);
+		//fprintf(stderr, "DEBUG: %d / %d => %d\n", symbol->m01[start],getOrbitSize(symbol, start, 0, 1), symbol->m01[start]/getOrbitSize(symbol, start, 0, 1));
+		azulenoid.m01[start]=newValue;
+		next = symbol->chambers[start][0];
+		while(next!=start || j!=1){
+			azulenoid.m01[next]=newValue;
+			j = (j+1)%2;
+			next = symbol->chambers[next][j];
+		}
+		azulenoid.m01[58]=newValue;
+		azulenoid.m01[59]=newValue;
+
+		int chamber1 = symbol->chambers[(1+2*i)%16][2];
+		int chamber2 = symbol->chambers[(6+2*i)%16][2];
+		int chamber3 = symbol->chambers[(7+2*i)%16][2];
+		int chamber4 = symbol->chambers[(16+2*i)%16][2];
+
+		azulenoid.chambers[(1+2*i)%16][0]=51;
+		azulenoid.chambers[(6+2*i)%16][0]=48;
+		azulenoid.chambers[(7+2*i)%16][0]=55;
+		azulenoid.chambers[(16+2*i)%16][0]=52;
+		azulenoid.chambers[chamber1][0]=56;
+		azulenoid.chambers[chamber2][0]=58;
+		azulenoid.chambers[chamber3][0]=59;
+		azulenoid.chambers[chamber4][0]=57;
+
+		azulenoid.chambers[48][0]=(6+2*i)%16;
+		azulenoid.chambers[48][1]=49;
+		azulenoid.chambers[48][2]=58;
+		azulenoid.chambers[49][0]=50;
+		azulenoid.chambers[49][1]=48;
+		azulenoid.chambers[49][2]=54;
+		azulenoid.chambers[50][0]=49;
+		azulenoid.chambers[50][1]=51;
+		azulenoid.chambers[50][2]=53;
+		azulenoid.chambers[51][0]=(1+2*i)%16;
+		azulenoid.chambers[51][1]=50;
+		azulenoid.chambers[51][2]=56;
+		azulenoid.chambers[52][0]=(16+2*i)%16;
+		azulenoid.chambers[52][1]=53;
+		azulenoid.chambers[52][2]=57;
+		azulenoid.chambers[53][0]=54;
+		azulenoid.chambers[53][1]=52;
+		azulenoid.chambers[53][2]=50;
+		azulenoid.chambers[54][0]=53;
+		azulenoid.chambers[54][1]=55;
+		azulenoid.chambers[54][2]=49;
+		azulenoid.chambers[55][0]=(7+2*i)%16;
+		azulenoid.chambers[55][1]=54;
+		azulenoid.chambers[55][2]=59;
+		azulenoid.chambers[56][0]=chamber1;
+		azulenoid.chambers[56][1]=57;
+		azulenoid.chambers[56][2]=51;
+		azulenoid.chambers[57][0]=chamber4;
+		azulenoid.chambers[57][1]=56;
+		azulenoid.chambers[57][2]=52;
+		azulenoid.chambers[58][0]=chamber2;
+		azulenoid.chambers[58][1]=59;
+		azulenoid.chambers[58][2]=48;
+		azulenoid.chambers[59][0]=chamber3;
+		azulenoid.chambers[59][1]=58;
+		azulenoid.chambers[59][2]=55;
+
+		if(checkConsistency(&azulenoid)) {
+			addSymbol2Library(&azulenoid, &azulenoid_library);
+		} else {
+			//for debugging purposes: normally shouldn't get here if everything is ok.
+			printDelaney(symbol);
+			printDelaney(&azulenoid);
+		}
+	}
+}
+
 /*
  * Check to see if m01 is constant on the sigma_0 sigma_1 - orbit through chamber and checks the size of that orbit.
  */
@@ -401,6 +576,7 @@ void complete_sigma0(struct delaney *symbol){
 	if(i==48){
 		//new symbol!
 		counter4++;
+		insertAzulene(symbol);
 		if(add_to_library(symbol))
 			countercanonical++;
 	} else {
@@ -694,8 +870,9 @@ int countSpanningOctagons(struct delaney *symbol){
 int main()
 {
 	
-		library.size=0;
-		minimal_library.size=0;
+	library.size=0;
+	minimal_library.size=0;
+	azulenoid_library.size=0;
         int array[SIZE+2];
         int i;
         for(i = 0; i<SIZE+2;i++)
@@ -707,12 +884,13 @@ int main()
 	fprintf(stderr, "Found %d canonical symbols\n", library.size);
 	struct delaney temp_minimal;
 	for(i = 0; i<library.size;i++){
+		//fprintf(stderr, "at %d \n", i);
 		minimal_delaney(library.collection+i,&temp_minimal);
 		add_to_minimal_library(&temp_minimal);
 	}
         fprintf(stderr, "Found %d minimal, canonical symbols\n\n", minimal_library.size);
 	for(i=0;i<minimal_library.size;i++){
-		exportDelaneyNumbered(minimal_library.collection + i, 1, i);
+		//exportDelaneyNumbered(minimal_library.collection + i, i+1, i+1);
 	}
 	int frequentie[48];
 	for(i=0;i<48;i++){
@@ -728,41 +906,30 @@ int main()
 	}
 	
 	for(i=0;i<minimal_library.size;i++){
-		if(countSpanningOctagons(minimal_library.collection + i)!=1){
-			fprintf(stderr, "Symbol with %d spanning octagons.\n", countSpanningOctagons(minimal_library.collection + i));
+		if(countSpanningOctagons(library.collection + i)!=1){
+			fprintf(stderr, "Symbol with %d spanning octagons.\n", countSpanningOctagons(library.collection + i));
 		}
 	}
 	fprintf(stderr, "\nFound %d symbol%s that contain%s a not spanning octagon.\n", counternotspanning, counternotspanning == 1 ? "" : "s",  counternotspanning == 1 ? "s" : "");
 	fprintf(stderr, "\nFound %d symbol%s that contain%s equivalent spanning octagons.\n", counterequivalentoctagons, counterequivalentoctagons == 1 ? "" : "s",  counterequivalentoctagons == 1 ? "s" : "");
 	
-	/*
-	struct delaney symbol;
-	basicDelaney(&symbol);
-	printDelaney(&symbol);*/
-	/*
-	struct delaney symbol;
-	int i;
+	fprintf(stderr, "\nFound %d canonical azulenoids.\n", azulenoid_library.size);
 	
-	symbol.size=6;
-	symbol.m01[0]=4;
-	symbol.m01[1]=8;
-	symbol.m01[2]=8;
-	symbol.m01[3]=4;
-	symbol.m01[4]=8;
-	symbol.m01[5]=8;
+	for(i = 0; i<azulenoid_library.size;i++){
+		//fprintf(stderr, "at %d \n", i);
+		minimal_delaney(azulenoid_library.collection+i,&temp_minimal);
+		add_to_minimal_azulenoid_library(&temp_minimal);
+	}
+	fprintf(stderr, "\nFound %d minimal, canonical azulenoids.\n", minimal_azulenoid_library.size);
+	//for(i=0;i<13;i++){
+/*	for(i=0;i<minimal_azulenoid_library.size;i++){
+		exportDelaneyNumbered(minimal_azulenoid_library.collection + i, i+1, i+1);
+		//printDelaney(minimal_azulenoid_library.collection + i);
+	}*/
+	for(i=0;i<minimal_azulenoid_library.size;i++){
+		//exportDelaneyNumbered(minimal_azulenoid_library.collection + i, i+1, i+1);
+		//printDelaney(minimal_azulenoid_library.collection + i);
+	}
 	
-	symbol.chambers[0][0]=0; symbol.chambers[0][1]=3; symbol.chambers[0][2]=1; 
-	symbol.chambers[1][0]=1; symbol.chambers[1][1]=2; symbol.chambers[1][2]=0; 
-	symbol.chambers[2][0]=2; symbol.chambers[2][1]=1; symbol.chambers[2][2]=5; 
-	symbol.chambers[3][0]=3; symbol.chambers[3][1]=0; symbol.chambers[3][2]=4; 
-	symbol.chambers[4][0]=4; symbol.chambers[4][1]=5; symbol.chambers[4][2]=3; 
-	symbol.chambers[5][0]=5; symbol.chambers[5][1]=4; symbol.chambers[5][2]=2; 
-	
-	printDelaney(&symbol);
-	
-	struct delaney min_symbol;
-	
-	minimal_delaney(&symbol,  &min_symbol);
-	printDelaney(&min_symbol);*/
 	return 0;
 }
