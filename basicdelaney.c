@@ -11,19 +11,18 @@
  *  gcc basicdelaney.c -c
  */
  
- #include <stdio.h>
  #include "basicdelaney.h"
  
  /*****************************************************************************/
 
-void printDelaney(DELANEY *symbol){
+void printDelaney(DELANEY *symbol, FILE *f){
 	int i;
-	fprintf(stdout, "|    | s0 | s1 | s2 | m01 | m12 |\n");
-	fprintf(stdout, "|===============================|\n");
+	fprintf(f, "|    | s0 | s1 | s2 | m01 | m12 |\n");
+	fprintf(f, "|===============================|\n");
 	for(i = 0; i<symbol->size; i++)
-		fprintf(stdout, "| %2d | %2d | %2d | %2d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m[i][0], symbol->m[i][1]);
-	fprintf(stdout, "|===============================|\n");
-	fprintf(stdout, "\n\n");
+		fprintf(f, "| %2d | %2d | %2d | %2d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m[i][0], symbol->m[i][1]);
+	fprintf(f, "|===============================|\n");
+	fprintf(f, "\n\n");
 }
 
 void exportDelaney(DELANEY *symbol){
@@ -310,6 +309,69 @@ void canonical_form(DELANEY *symbol, DELANEY *canon_symbol){
 			apply_relabelling(symbol, relabelling, canon_symbol);
 			found = 1;
 		}
+	}
+}
+
+void copyDelaney(DELANEY *original, DELANEY *copy){
+	copy->size = original->size;
+	int i, j;
+	for(j=0;j<original->size;j++){
+		for(i=0;i<3;i++)
+			copy->chambers[j][i]=original->chambers[j][i];
+		copy->m[j][0]=original->m[j][0];
+		copy->m[j][1]=original->m[j][1];
+	}
+}
+
+
+int addSymbol2Library(DELANEY *symbol, DELANEY_COLLECTION *library){
+	canonical_form(symbol, library->collection + library->size);
+	int i = 0;
+	while(i<library->size && compare(library->collection + library->size, library->collection + i)!=0)
+		i++;
+	if(i==library->size){
+		library->size++;
+		return 1;
+	} else
+		return 0;
+}
+
+
+int getChambersInOrbit(DELANEY *symbol, int start, int i, int j){
+	int marker[symbol->size];
+	int index;
+	mark_orbit(symbol, marker, start, i, j, 1);
+	int size = 0;
+	for(index = 0; index<symbol->size; index++)
+		if(marker[index])
+			size++;
+	return size;
+}
+
+int getOrbitSize(DELANEY *symbol, int start, int i, int j){
+	int next = symbol->chambers[symbol->chambers[start][i]][j];
+	if(next == start)
+		return 1;
+	int size = 2;
+	while((next = symbol->chambers[symbol->chambers[next][i]][j])!=start) size++;
+	return size;
+}
+
+void mark_orbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clean){
+	//clean marker if needed
+	int index;
+	if(clean)
+		for(index = 0; index<symbol->size; index++)
+			marker[index]=0;
+			
+	//mark orbit
+	marker[chamber]=1;
+	marker[symbol->chambers[chamber][i]]=1;
+	int next = symbol->chambers[symbol->chambers[chamber][i]][j];
+	while(next!=chamber){
+		marker[next]=1;
+		marker[symbol->chambers[next][i]]=1;
+		next = symbol->chambers[symbol->chambers[next][i]][j];	
 	}
 }
 

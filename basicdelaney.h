@@ -10,6 +10,8 @@
 #ifndef _BASICDELANEY_H // if not defined
 #define _BASICDELANEY_H // define BasicDelaney
 
+#include <stdio.h>
+
 struct __delaney{
 	int size;
 	int chambers[60][3];
@@ -32,7 +34,7 @@ typedef struct __delaney DELANEY;
 typedef struct __delaney_collection DELANEY_COLLECTION;
 
 //print a Delaney symbol
-void printDelaney(DELANEY *symbol);
+void printDelaney(DELANEY *symbol, FILE *f);
 
 void exportDelaney(DELANEY *symbol);
 
@@ -51,5 +53,15 @@ void canonical_chamber_relabelling(DELANEY *symbol, int *relabelling, int start)
 void apply_relabelling(DELANEY *origin, int *relabelling, DELANEY *image);
 
 void canonical_form(DELANEY *symbol, DELANEY *canon_symbol);
+
+void copyDelaney(DELANEY *original, DELANEY *copy);
+
+int addSymbol2Library(DELANEY *symbol, DELANEY_COLLECTION *library);
+
+int getChambersInOrbit(DELANEY *symbol, int start, int i, int j);
+
+int getOrbitSize(DELANEY *symbol, int start, int i, int j);
+
+void mark_orbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clean);
 
 #endif // end if not defined, and end the header file

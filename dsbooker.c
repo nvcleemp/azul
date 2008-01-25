@@ -32,23 +32,6 @@ void markorbit(DELANEY *symbol, int chamber, int i, int j){
 	}
 }
 
-/*
- * returns 1 if a new entry was made in the library.
- */
-int add2library(DELANEY *symbol){
-	canonical_form(symbol, library.collection + library.size);
-	int i = 0;
-	while(i<library.size && compare(library.collection + library.size, library.collection + i)!=0)
-		i++;
-	if(i==library.size) {
-		library.size++;
-		return 1;
-	} else{
-		//printDelaney(symbol);
-		return 0;
-	}
-}
-
 void printOrbit(DELANEY *symbol, int s1, int s2){
 	int i, chamber=0;
 	int sigmas[2];
@@ -161,12 +144,12 @@ int readDelaney(char *filename){
 				if(calculateMinimal){
 					DELANEY minsymbol;
 					minimal_delaney(&symbol, &minsymbol);
-					if(add2library(&minsymbol) && verbose){
+					if(addSymbol2Library(&minsymbol, &library) && verbose){
 						fprintf(stderr, "Added the following minimal symbol to the library:\n");
-						printDelaney(&minsymbol);
+						printDelaney(&minsymbol, stderr);
 					}
 				} else {
-					if(add2library(&symbol) && verbose){
+					if(addSymbol2Library(&symbol, &library) && verbose){
 						//fprintf(stderr, "Added the following symbol to the library:\n");
 						//printDelaney(&symbol);
 						exportDelaney(&symbol);
@@ -240,14 +223,14 @@ int readSingleDelaney(DELANEY *symbol, FILE *f){
 	if(calculateMinimal){
 		DELANEY minsymbol;
 		minimal_delaney(symbol, &minsymbol);
-		if(add2library(&minsymbol) && verbose){
+		if(addSymbol2Library(&minsymbol, &library) && verbose){
 			fprintf(stderr, "Added the following minimal symbol to the library:\n");
-			printDelaney(&minsymbol);
+			printDelaney(&minsymbol, stderr);
 		}
 	} else {
-		if(add2library(symbol) && verbose){
+		if(addSymbol2Library(symbol, &library) && verbose){
 			fprintf(stderr, "Added the following symbol to the library:\n");
-			printDelaney(symbol);
+			printDelaney(symbol, stderr);
 		}
 	}
 	
