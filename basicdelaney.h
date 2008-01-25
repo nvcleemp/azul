@@ -33,6 +33,8 @@ typedef struct __delaney_collection DELANEY_COLLECTION;
 //print a Delaney symbol
 void printDelaney(DELANEY *symbol, FILE *f);
 
+void exportLibrary(DELANEY_COLLECTION *library, int numbered);
+
 void exportDelaney(DELANEY *symbol);
 
 void exportDelaneyNumbered(DELANEY *symbol, int nr1, int nr2);

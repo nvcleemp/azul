@@ -25,6 +25,16 @@ void printDelaney(DELANEY *symbol, FILE *f){
 	fprintf(f, "\n\n");
 }
 
+void exportLibrary(DELANEY_COLLECTION *library, int numbered){
+	int i;
+	for(i=0;i<library->size;i++){
+		if(numbered)
+			exportDelaneyNumbered(library->collection + i, i+1, i+1);
+		else
+			exportDelaney(library->collection + i);
+	}
+}
+
 void exportDelaney(DELANEY *symbol){
 	exportDelaneyNumbered(symbol, symbol->comment1, symbol->comment2);
 }
