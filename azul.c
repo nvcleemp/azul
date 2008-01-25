@@ -502,6 +502,8 @@ int main()
 	library.size=0;
 	minimal_library.size=0;
 	azulenoid_library.size=0;
+	minimal_azulenoid_library.size=0;
+	
 	fprintf(stderr, "Octagon tilings\n");
 	fprintf(stderr, "===============\n");
     int array[SIZE+2];
@@ -513,28 +515,36 @@ int main()
 	fprintf(stderr, "\nFound %d canonical circular strings\n", counter3);
 	fprintf(stderr, "Found %d symbols\n", counter4);
 	fprintf(stderr, "Found %d canonical symbols\n", library.size);
+	
+	//calculate minimal octagon tilings
+	
 	DELANEY temp_minimal;
 	for(i = 0; i<library.size;i++){
-		//fprintf(stderr, "at %d \n", i);
 		minimal_delaney(library.collection+i,&temp_minimal);
 		addSymbol2Library(&temp_minimal, &minimal_library);
 	}
-        fprintf(stderr, "Found %d minimal, canonical symbols\n\n", minimal_library.size);
+	fprintf(stderr, "Found %d minimal, canonical symbols\n\n", minimal_library.size);
+	/*
 	for(i=0;i<minimal_library.size;i++){
-		//exportDelaneyNumbered(minimal_library.collection + i, i+1, i+1);
+		exportDelaneyNumbered(minimal_library.collection + i, i+1, i+1);
 	}
-	int frequentie[48];
+	*/
+	
+	//determine size of minimal symbols
+	int frequency[48];
 	for(i=0;i<48;i++){
-		frequentie[i]=0;
+		frequency[i]=0;
 	}
 	for(i=0;i<minimal_library.size;i++){
-		frequentie[(minimal_library.collection + i)->size-1]++;
+		frequency[(minimal_library.collection + i)->size-1]++;
 	}
 	
 	for(i=0;i<48;i++){
-		if(frequentie[i])
-			fprintf(stderr, "%d symbols with %d chambers\n", frequentie[i], i+1);
+		if(frequency[i])
+			fprintf(stderr, "%3d symbols with %2d chambers\n", frequency[i], i+1);
 	}
+	
+	//determine spanning octagons
 	
 	fprintf(stderr, "\nLooking for spanning octagons in canonical symbols.\n");
 	
@@ -546,26 +556,23 @@ int main()
 	fprintf(stderr, "\nFound %d symbol%s that contain%s a not spanning octagon.\n", counternotspanning, counternotspanning == 1 ? "" : "s",  counternotspanning == 1 ? "s" : "");
 	fprintf(stderr, "\nFound %d symbol%s that contain%s equivalent spanning octagons.\n", counterequivalentoctagons, counterequivalentoctagons == 1 ? "" : "s",  counterequivalentoctagons == 1 ? "s" : "");
 
+	//azulenoids
+	
 	fprintf(stderr, "\nAzulenoids\n");
 	fprintf(stderr, "==========\n");
 	
 	fprintf(stderr, "\nFound %d canonical azulenoids.\n", azulenoid_library.size);
 	
 	for(i = 0; i<azulenoid_library.size;i++){
-		//fprintf(stderr, "at %d \n", i);
 		minimal_delaney(azulenoid_library.collection+i,&temp_minimal);
 		addSymbol2Library(&temp_minimal, &minimal_azulenoid_library);
 	}
 	fprintf(stderr, "\nFound %d minimal, canonical azulenoids.\n", minimal_azulenoid_library.size);
-	//for(i=0;i<13;i++){
-/*	for(i=0;i<minimal_azulenoid_library.size;i++){
-		exportDelaneyNumbered(minimal_azulenoid_library.collection + i, i+1, i+1);
-		//printDelaney(minimal_azulenoid_library.collection + i);
-	}*/
+	/*	
 	for(i=0;i<minimal_azulenoid_library.size;i++){
-		//exportDelaneyNumbered(minimal_azulenoid_library.collection + i, i+1, i+1);
-		//printDelaney(minimal_azulenoid_library.collection + i);
+		exportDelaneyNumbered(minimal_azulenoid_library.collection + i, i+1, i+1);
 	}
+	*/
 	
 	return 0;
 }
