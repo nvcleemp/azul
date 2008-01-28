@@ -54,6 +54,7 @@ int checkConsistency(DELANEY *symbol){
 		if(!(marker[chamber])){
 			int j=0, next = symbol->chambers[chamber][j], size = 1;
 			while(next!=chamber || j!=1){
+				if(symbol->m[chamber][0]!=symbol->m[next][0]) return 0;
 				marker[next]=1;
 				if(j) size++;
 				j = (j+1)%2;
@@ -91,8 +92,6 @@ void insertAzulene(DELANEY *symbol){
 			j = (j+1)%2;
 			next = symbol->chambers[next][j];
 		}
-		azulenoid.m[56][0]=newValue;
-		azulenoid.m[57][0]=newValue;
 
 		j=0;
 		start = symbol->chambers[(6+2*i)%16][2];
@@ -104,6 +103,13 @@ void insertAzulene(DELANEY *symbol){
 			j = (j+1)%2;
 			next = symbol->chambers[next][j];
 		}
+
+		//moved this to after second adjustement.
+		//this was otherwise not adjusted when they were
+		//in the same face as the second adjustement
+		azulenoid.m[56][0]=azulenoid.m[symbol->chambers[(1+2*i)%16][2]][0];
+		azulenoid.m[57][0]=azulenoid.m[symbol->chambers[(1+2*i)%16][2]][0];
+
 		azulenoid.m[58][0]=newValue;
 		azulenoid.m[59][0]=newValue;
 
