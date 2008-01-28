@@ -101,6 +101,8 @@ int readSingleDelaney(DELANEY *symbol, FILE *f){
 		fprintf(stderr, "Error: Illegal format: Must start with number.number.\n");
 		return 0;
 	}
+	symbol->comment1 = d1;
+	symbol->comment2 = d2;
 	/******************************/
 	if(fscanf(f, "%d", &d1)==0){
 		fprintf(stderr, "Error: Illegal format. Cannot read size.\n");
