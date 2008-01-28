@@ -17,7 +17,7 @@ DELANEY_COLLECTION library;
 int calculateMinimal = 0;
 int format = 0; //0 for ds-format, 1 for human-readable table
 int libMode = 0; //0 read-only, 1 append
-int verbose = 0; //0 no, 1 print out info to stderr
+int verbose = 0; //0 no, +1 print out info to stderr
 
 /*****************************************************************************/
 
@@ -71,12 +71,12 @@ int readDelaney(char *filename){
 				if(calculateMinimal){
 					DELANEY minsymbol;
 					minimal_delaney(&symbol, &minsymbol);
-					if(addSymbol2Library(&minsymbol, &library) && verbose){
+					if(addSymbol2Library(&minsymbol, &library) && verbose>1){
 						fprintf(stderr, "Added the following minimal symbol to the library:\n");
 						printDelaney(&minsymbol, stderr);
 					}
 				} else {
-					if(addSymbol2Library(&symbol, &library) && verbose){
+					if(addSymbol2Library(&symbol, &library) && verbose>1){
 						fprintf(stderr, "Added the following symbol to the library:\n");
 						printDelaney(&symbol, stderr);
 					}
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]){
 				format = 1;
 				break;
 			case 'v':
-				verbose = 1;
+				verbose++;
 				break;
 			case 'a':
 				libMode = 1;
