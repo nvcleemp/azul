@@ -64,63 +64,10 @@ int readDelaney(char *filename){
 		perror("dsbooker");
 		return 0;
 	} else {
-		while((c=getc(lib))!=EOF){
-			if(c=='\n'){
-			} else if(c!='<'){
-				fprintf(stderr, "Error: Found %c and expected '<'.\n", c);
-				return 0;
-			} else {
-				/******************************/
+		DELANEY symbol;
+		while((c=readSingleDelaney(&symbol, lib))!=EOF){
+			if(c) {
 				offered++;
-				int d1, d2;
-				if(fscanf(lib, "%d.%d:", &d1, &d2)==0){
-					fprintf(stderr, "Error: Illegal format: Must start with number.number.\n");
-					return 0;
-				}
-				/******************************/
-				DELANEY symbol;
-				symbol.comment1 = d1;
-				symbol.comment2 = d2;
-				if(fscanf(lib, "%d", &d1)==0){
-					fprintf(stderr, "Error: Illegal format. Cannot read size.\n");
-					return 0;
-				}
-				emptyDelaney(&symbol, d1);
-				if(fscanf(lib, "%d", &d1) && d1 != 2){
-					fprintf(stderr, "Error: Currently only Delaney symbols with dimension 2 are supported.\n");
-					return 0;
-				}
-				while((c=getc(lib))!=':');
-				/******************************/
-				int i = 0, j=0;
-				while(j < 3){
-					while(fscanf(lib, "%d", &d1)){
-						if(d1-1>=symbol.size || i>=symbol.size){
-							fprintf(stderr, "Error: Illegal format. Indices grow too large while building sigma_%d-functions: %d and %d, while size is %d.\n", j, d1, i, symbol.size);
-							return 0;
-						}
-						symbol.chambers[i][j]=d1-1;
-						symbol.chambers[d1-1][j]=i;
-						while(symbol.chambers[i][j]!=-1) i++;
-					}
-					i=0;
-					j++;
-					while(j<3 && (c=getc(lib))!=',');
-				}
-				while((c=getc(lib))!=':');
-				/******************************/
-				i = 0; j=0;
-				while(j < 2){
-					while(fscanf(lib, "%d", &d1)){
-						fillm4orbit(&symbol, j, d1, i);
-						while(i<symbol.size && symbol.m[i][j]!=-1) i++;
-					}
-					i=0;
-					j++;
-					while(j<2 && (c=getc(lib))!=',');
-				}
-				while((c=getc(lib))!='>');
-				
 				if(calculateMinimal){
 					DELANEY minsymbol;
 					minimal_delaney(&symbol, &minsymbol);
@@ -130,19 +77,21 @@ int readDelaney(char *filename){
 					}
 				} else {
 					if(addSymbol2Library(&symbol, &library) && verbose){
-						//fprintf(stderr, "Added the following symbol to the library:\n");
-						//printDelaney(&symbol);
-						exportDelaney(&symbol, stdout);
-				
+						fprintf(stderr, "Added the following symbol to the library:\n");
+						printDelaney(&symbol, stderr);
 					}
 				}
+			} else {
+				fprintf(stderr, "Error while reading delaney symbols from file.");
+				fclose(lib);
+				return 0;
 			}
 		}
 	}
-	//if(verbose) {
+	if(verbose) {
 		fprintf(stderr, "Added %d symbols to the library.\n", library.size);
 		fprintf(stderr, "Offered %d symbols to the library.\n", offered);
-	//}
+	}
 	fclose(lib);
 	return 1;
 }
