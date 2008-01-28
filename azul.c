@@ -28,8 +28,8 @@ struct bucket_collection{
 	int collection_size;
 };
 
-DELANEY_COLLECTION library;
-DELANEY_COLLECTION minimal_library;
+DELANEY_COLLECTION octagon_library;
+DELANEY_COLLECTION minimal_octagon_library;
 DELANEY_COLLECTION azulenoid_library;
 DELANEY_COLLECTION minimal_azulenoid_library;
 
@@ -209,7 +209,7 @@ void complete_sigma0(DELANEY *symbol){
 		//new symbol!
 		counter4++;
 		insertAzulene(symbol);
-		if(addSymbol2Library(symbol, &library))
+		if(addSymbol2Library(symbol, &octagon_library))
 			countercanonical++;
 	} else {
 		//first try loop
@@ -536,8 +536,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	
-	library.size=0;
-	minimal_library.size=0;
+	octagon_library.size=0;
+	minimal_octagon_library.size=0;
 	azulenoid_library.size=0;
 	minimal_azulenoid_library.size=0;
 	
@@ -551,22 +551,22 @@ int main(int argc, char *argv[])
 		tick(array, SIZE - 1);
 	fprintf(stderr, "\nFound %d canonical circular strings\n", counter3);
 	fprintf(stderr, "Found %d symbols\n", counter4);
-	fprintf(stderr, "Found %d canonical symbols\n", library.size);
+	fprintf(stderr, "Found %d canonical symbols\n", octagon_library.size);
 	
 	//calculate minimal octagon tilings
 	
 	DELANEY temp_minimal;
-	for(i = 0; i<library.size;i++){
-		minimal_delaney(library.collection+i,&temp_minimal);
-		addSymbol2Library(&temp_minimal, &minimal_library);
+	for(i = 0; i<octagon_library.size;i++){
+		minimal_delaney(octagon_library.collection+i,&temp_minimal);
+		addSymbol2Library(&temp_minimal, &minimal_octagon_library);
 	}
-	fprintf(stderr, "Found %d minimal, canonical symbols\n\n", minimal_library.size);
+	fprintf(stderr, "Found %d minimal, canonical symbols\n\n", minimal_octagon_library.size);
 	
 	if(export_octagon){
 		if(export_minimal)
-			exportLibrary(&minimal_library, 1, stdout);
+			exportLibrary(&minimal_octagon_library, 1, stdout);
 		else
-			exportLibrary(&library, 1, stdout);
+			exportLibrary(&octagon_library, 1, stdout);
 	}
 	
 	
@@ -575,8 +575,8 @@ int main(int argc, char *argv[])
 	for(i=0;i<48;i++){
 		frequency[i]=0;
 	}
-	for(i=0;i<minimal_library.size;i++){
-		frequency[(minimal_library.collection + i)->size-1]++;
+	for(i=0;i<minimal_octagon_library.size;i++){
+		frequency[(minimal_octagon_library.collection + i)->size-1]++;
 	}
 	
 	for(i=0;i<48;i++){
@@ -588,9 +588,9 @@ int main(int argc, char *argv[])
 	
 	fprintf(stderr, "\nLooking for spanning octagons in canonical symbols.\n");
 	
-	for(i=0;i<minimal_library.size;i++){
-		if(countSpanningOctagons(minimal_library.collection + i)!=1){
-			fprintf(stderr, "Symbol with %d spanning octagons.\n", countSpanningOctagons(minimal_library.collection + i));
+	for(i=0;i<minimal_octagon_library.size;i++){
+		if(countSpanningOctagons(minimal_octagon_library.collection + i)!=1){
+			fprintf(stderr, "Symbol with %d spanning octagons.\n", countSpanningOctagons(minimal_octagon_library.collection + i));
 		}
 	}
 	fprintf(stderr, "\nFound %d symbol%s that contain%s a not spanning octagon.\n", counternotspanning, counternotspanning == 1 ? "" : "s",  counternotspanning == 1 ? "s" : "");
