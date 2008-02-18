@@ -457,3 +457,31 @@ void markorbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clea
 	}
 }
 
+
+int isOrientable(DELANEY *symbol){
+	int orientation[symbol->size];
+	int stack[symbol->size];
+	int stacksize;
+	int i, j;
+	
+	for(i=0;i<symbol->size;i++)
+		orientation[i]=0;
+		
+	orientation[0]=1;
+	stack[0] = 0;
+	stacksize = 1;
+	
+	while(stacksize>0){
+		int chamber = stack[--stacksize];
+		for(j=0; j<3; j++){
+			if(orientation[symbol->chambers[chamber][j]]==0){
+				orientation[symbol->chambers[chamber][j]]=-orientation[chamber];
+				stack[stacksize++] = symbol->chambers[chamber][j];
+			} else if(orientation[symbol->chambers[chamber][j]]==orientation[chamber]){
+				return 0;
+			}
+		}
+	}
+	
+	return 1;
+}

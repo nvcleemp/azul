@@ -70,4 +70,6 @@ int getOrbitSize(DELANEY *symbol, int start, int i, int j);
 
 void markorbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clean);
 
+int isOrientable(DELANEY *symbol);
+
 #endif // end if not defined, and end the header file
