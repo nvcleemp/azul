@@ -494,6 +494,14 @@ int countSpanningOctagons(DELANEY *symbol){
 
 }
 
+void exportOnlyTranslation(){
+	int i;
+	int j=1;
+	for(i=0;i<azulenoid_library.size;i++)
+		if(hasOnlyTranslation(azulenoid_library.collection + i))
+			exportDelaneyNumbered(azulenoid_library.collection + i, j++, (azulenoid_library.collection + i)->comment1, stdout);
+}
+
 /*******************************************************/
 
 int main(int argc, char *argv[])
@@ -501,6 +509,7 @@ int main(int argc, char *argv[])
 	int export_minimal = 0;
 	int export_octagon = 0;
 	int export_azulenoid = 0;
+	int export_onlytranslation = 0;
 	int c, error = 0;
 	while (--argc > 0 && (*++argv)[0] == '-'){
 		while (c = *++argv[0])
@@ -514,14 +523,18 @@ int main(int argc, char *argv[])
 			case 'a':
 				export_azulenoid = 1;
 				break;
+			case 't':
+				export_onlytranslation = 1;
+				break;
 			case 'h':
 				//print help
 				fprintf(stderr, "The program azul calculates toroidal azulenoids.\n");
-				fprintf(stderr, "Usage: azul [-moah]\n\n");
+				fprintf(stderr, "Usage: azul [-moath]\n\n");
 				fprintf(stderr, "Valid options:\n");
 				fprintf(stderr, "  -m\t: Output minimal symbols.\n");
 				fprintf(stderr, "  -o\t: Output the calculated octagon tilings.\n");
 				fprintf(stderr, "  -a\t: Output the calculated azulenoids.\n");
+				fprintf(stderr, "  -t\t: Output only azulenoids who's isometry group consists of only translations.\n");
 				fprintf(stderr, "  -h\t: Print this help and return.\n");
 				return 0;
 			default:
@@ -613,6 +626,10 @@ int main(int argc, char *argv[])
 			exportLibrary(&minimal_azulenoid_library, 1, stdout);
 		else
 			exportLibrary(&azulenoid_library, 1, stdout);
+	}
+	
+	if(export_onlytranslation){
+		exportOnlyTranslation();
 	}
 	
 	return 0;
