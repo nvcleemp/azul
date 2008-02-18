@@ -72,4 +72,6 @@ void markorbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clea
 
 int isOrientable(DELANEY *symbol);
 
+int hasOnlyTranslation(DELANEY *symbol);
+
 #endif // end if not defined, and end the header file

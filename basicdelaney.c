@@ -485,3 +485,14 @@ int isOrientable(DELANEY *symbol){
 	
 	return 1;
 }
+
+
+int hasOnlyTranslation(DELANEY *symbol){
+	int i;
+	if(!isOrientable(symbol))
+		return 0;
+	for(i=0;i<symbol->size;i++)
+		if(getChambersInOrbit(symbol, i, 0, 1)!=2*(symbol->m[i][0]) || getChambersInOrbit(symbol, i, 1, 2)!=2*(symbol->m[i][1]) || getChambersInOrbit(symbol, i, 0, 2)!=4)
+			return 0;
+	return 1;
+}
