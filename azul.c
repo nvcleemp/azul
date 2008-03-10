@@ -502,6 +502,88 @@ void exportOnlyTranslation(){
 			exportDelaneyNumbered(azulenoid_library.collection + i, j++, (azulenoid_library.collection + i)->comment1, stdout);
 }
 
+struct face_enum{
+	int faces[10];
+	int size;
+};
+
+struct face_enum_collection{
+	struct face_enum collection[190];
+	int frequency[190];
+	int collection_size;
+};
+
+void addFace2Enum(struct face_enum *faceEnum, int face){
+	faceEnum->faces[faceEnum->size++]=face;
+}
+
+void canonicalFaceEnum(struct face_enum *original, struct face_enum *canon){
+	int i,j;
+	canon->size=0;
+	for(i=4;i<=36;i++)
+		for(j=0;j<original->size;j++)
+			if(original->faces[j]==i)
+				addFace2Enum(canon, i);
+}
+
+int faceEnumEqual(struct face_enum *faceEnum1, struct face_enum *faceEnum2){
+	if(faceEnum1->size!=faceEnum2->size)
+		return 0;
+	int i;
+	for(i=0;i<faceEnum1->size;i++)
+		if(faceEnum1->faces[i]!=faceEnum2->faces[i])
+			return 0;
+	return 1;
+}
+
+void addFaceEnum2Collection(struct face_enum *faceEnum, struct face_enum_collection *collection){
+	int i;
+	canonicalFaceEnum(faceEnum, (collection->collection + (collection->collection_size)));
+	for(i=0;i<collection->collection_size;i++)
+		if(faceEnumEqual(collection->collection + i, collection->collection + collection->collection_size)){
+			(*(collection->frequency + i))++;
+			return;
+		}
+	*(collection->frequency + (collection->collection_size)) = 1;
+	collection->collection_size++;
+}
+
+void printLibraryFaceSummary(DELANEY_COLLECTION *library, FILE *f){
+	int i, j;
+	int max = 0;
+	int max_num = 0;
+	struct face_enum faceEnum;
+	struct face_enum_collection collection;
+	collection.collection_size=0;
+	for(i=0;i<library->size;i++){
+		faceEnum.size = 0;
+		DELANEY *symbol = library->collection + i;
+		int marker[symbol->size];
+		for(j = 0; j < symbol->size; j++)
+			marker[j]=0;
+		for(j = 0; j < symbol->size; j++){
+			if(!marker[j]){
+				addFace2Enum(&faceEnum, symbol->m[j][0]);
+				if(symbol->m[j][0] > max)
+					max = symbol->m[j][0];
+				markorbit(symbol, marker, j, 0, 1, 0);
+			}
+		}
+		addFaceEnum2Collection(&faceEnum, &collection);
+		if(faceEnum.size>max_num)
+			max_num=faceEnum.size;
+	}
+	fprintf(f, "\nmaximum size of a face: %d\nmaximum number of faces: %d\n", max, max_num);
+	fprintf(f, "Number of different face collections: %d\n\n", collection.collection_size);
+	
+	for(i=0;i<collection.collection_size;i++){
+		fprintf(f, "%3d) %3d fundamental tiles with faces of order", i+1, *(collection.frequency + i));
+		for(j=0;j<(collection.collection+i)->size;j++)
+			fprintf(f, " %d", *((collection.collection+i)->faces + j));
+		fprintf(f, " \n");
+	}
+}
+
 /*******************************************************/
 
 int main(int argc, char *argv[])
@@ -510,6 +592,7 @@ int main(int argc, char *argv[])
 	int export_octagon = 0;
 	int export_azulenoid = 0;
 	int export_onlytranslation = 0;
+	int export_summary = 0;
 	int c, error = 0;
 	while (--argc > 0 && (*++argv)[0] == '-'){
 		while (c = *++argv[0])
@@ -526,6 +609,9 @@ int main(int argc, char *argv[])
 			case 't':
 				export_onlytranslation = 1;
 				break;
+			case 's':
+				export_summary = 1;
+				break;
 			case 'h':
 				//print help
 				fprintf(stderr, "The program azul calculates toroidal azulenoids.\n");
@@ -535,6 +621,7 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "  -o\t: Output the calculated octagon tilings.\n");
 				fprintf(stderr, "  -a\t: Output the calculated azulenoids.\n");
 				fprintf(stderr, "  -t\t: Output only azulenoids who's isometry group consists of only translations.\n");
+				fprintf(stderr, "  -s\t: Output a summary.\n");
 				fprintf(stderr, "  -h\t: Print this help and return.\n");
 				return 0;
 			default:
@@ -630,6 +717,10 @@ int main(int argc, char *argv[])
 	
 	if(export_onlytranslation){
 		exportOnlyTranslation();
+	}
+	
+	if(export_summary){
+		printLibraryFaceSummary(&minimal_azulenoid_library, stdout);
 	}
 	
 	return 0;
