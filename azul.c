@@ -667,7 +667,7 @@ int main(int argc, char *argv[])
     int restriction = 0;
 	int c, error = 0;
 	while (--argc > 0 && (*++argv)[0] == '-'){
-		while (c = *++argv[0])
+		while ((c = *++argv[0]))
 			switch (c) {
 			case 'm':
 				export_minimal = 1;
