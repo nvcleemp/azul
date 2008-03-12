@@ -499,8 +499,7 @@ void exportOnlyTranslation(){
 	int j=1;
 	for(i=0;i<azulenoid_library.size;i++)
 		if(hasOnlyTranslation(azulenoid_library.collection + i))
-			printDelaney(azulenoid_library.collection + i, stdout);
-			//exportDelaneyNumbered(azulenoid_library.collection + i, j++, (azulenoid_library.collection + i)->comment1, stdout);
+			exportDelaneyNumbered(azulenoid_library.collection + i, j++, (azulenoid_library.collection + i)->comment1, stdout);
 }
 
 struct face_enum{
@@ -808,30 +807,33 @@ int main(int argc, char *argv[])
 	int max = 0;
 	int j;
 	for(i = 0; i<minimal_azulenoid_library.size;i++){
-		DELANEY *symbol = minimal_azulenoid_library.collection+i;
-		for(j=0; j<symbol->size;j++){
-			int temp = getV(symbol, j, 0, 1);
-			if(temp>max)
-				max=temp;
-		}
-	}
-	for(i = 0; i<minimal_azulenoid_library.size;i++){
-		DELANEY *symbol = minimal_azulenoid_library.collection+i;
-		for(j=0; j<symbol->size;j++){
-			int temp = getV(symbol, j, 0, 2);
-			if(temp>max)
-				max=temp;
-		}
-	}
-	for(i = 0; i<minimal_azulenoid_library.size;i++){
-		DELANEY *symbol = minimal_azulenoid_library.collection+i;
-		for(j=0; j<symbol->size;j++){
-			int temp = getV(symbol, j, 1, 2);
+		DELANEY symbol;
+		makeOrientable(minimal_azulenoid_library.collection+i, &symbol);
+		for(j=0; j<symbol.size;j++){
+			int temp = getV(&symbol, j, 0, 1)*symbol.size;
 			if(temp>max)
 				max=temp;
 		}
 	}
 	fprintf(stderr, "\nmax = %d.\n", max);
+	for(i = 0; i<minimal_azulenoid_library.size;i++){
+		DELANEY symbol;
+		makeOrientable(minimal_azulenoid_library.collection+i, &symbol);
+		for(j=0; j<symbol.size;j++){
+			int temp = getV(&symbol, j, 0, 2)*symbol.size;
+			if(temp>max)
+				max=temp;
+		}
+	}
+	for(i = 0; i<minimal_azulenoid_library.size;i++){
+		DELANEY symbol;
+		makeOrientable(minimal_azulenoid_library.collection+i, &symbol);
+		for(j=0; j<symbol.size;j++){
+			int temp = getV(&symbol, j, 1, 2)*symbol.size;
+			if(temp>max)
+				max=temp;
+		}
+	}
 	
 	return 0;
 }
