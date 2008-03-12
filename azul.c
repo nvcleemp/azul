@@ -499,7 +499,8 @@ void exportOnlyTranslation(){
 	int j=1;
 	for(i=0;i<azulenoid_library.size;i++)
 		if(hasOnlyTranslation(azulenoid_library.collection + i))
-			exportDelaneyNumbered(azulenoid_library.collection + i, j++, (azulenoid_library.collection + i)->comment1, stdout);
+			printDelaney(azulenoid_library.collection + i, stdout);
+			//exportDelaneyNumbered(azulenoid_library.collection + i, j++, (azulenoid_library.collection + i)->comment1, stdout);
 }
 
 struct face_enum{
@@ -584,6 +585,76 @@ void printLibraryFaceSummary(DELANEY_COLLECTION *library, FILE *f){
 	}
 }
 
+int getMaximumFaceSize(DELANEY *symbol){
+	int marker[symbol->size];
+	int j, max = 0;
+	for(j = 0; j < symbol->size; j++)
+		marker[j]=0;
+	for(j = 0; j < symbol->size; j++){
+		if(!marker[j]){
+			if(symbol->m[j][0] > max)
+				max = symbol->m[j][0];
+			markorbit(symbol, marker, j, 0, 1, 0);
+		}
+	}
+	return max;
+}
+
+void exportRestrictedSymbols(DELANEY_COLLECTION *library, FILE *f, int maximumSize){
+	int i, count = 1;
+	for(i=0;i<library->size;i++){
+		if(getMaximumFaceSize(library->collection + i)<=maximumSize)
+			exportDelaneyNumbered(library->collection + i, 1, count++, f);
+	}
+}
+
+int parseNumber(char *argv[]){
+	int c, stop=0, number = 0;
+    while(!stop && (c = *++argv[0])){
+		switch (c) {
+			case '0':
+				number = number*10;
+				break;
+			case '1':
+				number = number*10 + 1;
+				break;
+			case '2':
+				number = number*10 + 2;
+				break;
+			case '3':
+				number = number*10 + 3;
+				break;
+			case '4':
+				number = number*10 + 4;
+				break;
+			case '5':
+				number = number*10 + 5;
+				break;
+			case '6':
+				number = number*10 + 6;
+				break;
+			case '7':
+				number = number*10 + 7;
+				break;
+			case '8':
+				number = number*10 + 8;
+				break;
+			case '9':
+				number = number*10 + 9;
+				break;
+			case '_':
+				stop=1;
+				break;
+			default:
+				fprintf(stderr, "Error while parsing number: %c\n", c);
+				stop = 1;
+				number = 0;
+				break;
+		}
+	}
+	return number;
+}
+
 /*******************************************************/
 
 int main(int argc, char *argv[])
@@ -593,6 +664,8 @@ int main(int argc, char *argv[])
 	int export_azulenoid = 0;
 	int export_onlytranslation = 0;
 	int export_summary = 0;
+	int export_restricted = 0;
+    int restriction = 0;
 	int c, error = 0;
 	while (--argc > 0 && (*++argv)[0] == '-'){
 		while (c = *++argv[0])
@@ -612,16 +685,21 @@ int main(int argc, char *argv[])
 			case 's':
 				export_summary = 1;
 				break;
+			case 'r':
+				export_restricted = 1;
+				restriction = parseNumber(argv);
+				break;
 			case 'h':
 				//print help
 				fprintf(stderr, "The program azul calculates toroidal azulenoids.\n");
-				fprintf(stderr, "Usage: azul [-moath]\n\n");
+				fprintf(stderr, "Usage: azul [-moatsrh]\n\n");
 				fprintf(stderr, "Valid options:\n");
 				fprintf(stderr, "  -m\t: Output minimal symbols.\n");
 				fprintf(stderr, "  -o\t: Output the calculated octagon tilings.\n");
 				fprintf(stderr, "  -a\t: Output the calculated azulenoids.\n");
 				fprintf(stderr, "  -t\t: Output only azulenoids who's isometry group consists of only translations.\n");
 				fprintf(stderr, "  -s\t: Output a summary.\n");
+				fprintf(stderr, "  -r(number)_\t: Output the calculated azulenoids restricted to a maximum face size.\n");
 				fprintf(stderr, "  -h\t: Print this help and return.\n");
 				return 0;
 			default:
@@ -719,9 +797,41 @@ int main(int argc, char *argv[])
 		exportOnlyTranslation();
 	}
 	
+	if(export_restricted){
+		exportRestrictedSymbols(&minimal_azulenoid_library, stdout, restriction);
+	}
+	
 	if(export_summary){
 		printLibraryFaceSummary(&minimal_azulenoid_library, stdout);
 	}
+
+	int max = 0;
+	int j;
+	for(i = 0; i<minimal_azulenoid_library.size;i++){
+		DELANEY *symbol = minimal_azulenoid_library.collection+i;
+		for(j=0; j<symbol->size;j++){
+			int temp = getV(symbol, j, 0, 1);
+			if(temp>max)
+				max=temp;
+		}
+	}
+	for(i = 0; i<minimal_azulenoid_library.size;i++){
+		DELANEY *symbol = minimal_azulenoid_library.collection+i;
+		for(j=0; j<symbol->size;j++){
+			int temp = getV(symbol, j, 0, 2);
+			if(temp>max)
+				max=temp;
+		}
+	}
+	for(i = 0; i<minimal_azulenoid_library.size;i++){
+		DELANEY *symbol = minimal_azulenoid_library.collection+i;
+		for(j=0; j<symbol->size;j++){
+			int temp = getV(symbol, j, 1, 2);
+			if(temp>max)
+				max=temp;
+		}
+	}
+	fprintf(stderr, "\nmax = %d.\n", max);
 	
 	return 0;
 }
