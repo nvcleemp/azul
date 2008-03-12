@@ -439,6 +439,18 @@ int getOrbitSize(DELANEY *symbol, int start, int i, int j){
 	return size;
 }
 
+int getV(DELANEY *symbol, int chamber, int i, int j){
+	if(i==j)
+		return 0;
+	if(i+j==2)
+		return 2/getOrbitSize(symbol, chamber, i, j);
+	if(i+j==1)
+		return (symbol->m[chamber][0])/getOrbitSize(symbol, chamber, i, j);
+	if(i+j==3)
+		return (symbol->m[chamber][1])/getOrbitSize(symbol, chamber, i, j);
+	return 0;
+}
+
 void markorbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clean){
 	//clean marker if needed
 	int index;
@@ -486,6 +498,54 @@ int isOrientable(DELANEY *symbol){
 	return 1;
 }
 
+void makeOrientable(DELANEY *symbol, DELANEY *copy){
+	if(isOrientable(symbol))
+		copyDelaney(symbol, copy);
+
+	int orientation[symbol->size];
+	int stack[symbol->size];
+	int stacksize;
+	int i, j;
+	
+	for(i=0;i<symbol->size;i++)
+		orientation[i]=0;
+		
+	orientation[0]=1;
+	stack[0] = 0;
+	stacksize = 1;
+	
+	while(stacksize>0){
+		int chamber = stack[--stacksize];
+		for(j=0; j<3; j++){
+			if(orientation[symbol->chambers[chamber][j]]==0){
+				orientation[symbol->chambers[chamber][j]]=-orientation[chamber];
+				stack[stacksize++] = symbol->chambers[chamber][j];
+			}
+		}
+	}
+
+	emptyDelaney(copy, symbol->size*2);
+
+	for (i = 0; i < symbol->size; i++) {
+		for (j = 0; j < 2; j++) {
+			copy->m[i][j]=symbol->m[i][j];
+			copy->m[i+symbol->size][j]=symbol->m[i][j];
+		}
+	}
+	
+	for (i = 0; i < symbol->size; i++) {
+		for (j = 0; j < 3; j++) {
+			int target = symbol->chambers[i][j];
+			if(orientation[i]==orientation[target]){
+				copy->chambers[i][j] = target + symbol->size;
+				copy->chambers[i + symbol->size][j] = target;
+			} else {
+				copy->chambers[i][j] = target;
+				copy->chambers[i + symbol->size][j] = target + symbol->size;
+			}
+		}
+	}
+}
 
 int hasOnlyTranslation(DELANEY *symbol){
 	int i;

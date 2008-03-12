@@ -68,9 +68,13 @@ int getChambersInOrbit(DELANEY *symbol, int start, int i, int j);
 
 int getOrbitSize(DELANEY *symbol, int start, int i, int j);
 
+int getV(DELANEY *symbol, int chamber, int i, int j);
+
 void markorbit(DELANEY *symbol, int *marker, int chamber, int i, int j, int clean);
 
 int isOrientable(DELANEY *symbol);
+
+void makeOrientable(DELANEY *symbol, DELANEY *copy);
 
 int hasOnlyTranslation(DELANEY *symbol);
 
