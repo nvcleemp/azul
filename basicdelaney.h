@@ -10,7 +10,7 @@
 #ifndef _BASICDELANEY_H // if not defined
 #define _BASICDELANEY_H // define BasicDelaney
 
-#define DELANEYSIZE 60
+#define DELANEYSIZE 120
 #define COLLECTIONSIZE 2000
 
 #include <stdio.h>
