@@ -164,13 +164,13 @@ void insertAzulene(DELANEY *symbol){
 		azulenoid.chambers[59][1]=58;
 		azulenoid.chambers[59][2]=55;
 
-		if(checkConsistency(&azulenoid)) {
+		//if(checkConsistency(&azulenoid)) {
 			addSymbol2Library(&azulenoid, &azulenoid_library);
-		} else {
+		//} else {
 			//for debugging purposes: normally shouldn't get here if everything is ok.
-			printDelaney(symbol, stdout);
-			printDelaney(&azulenoid, stdout);
-		}
+		//	printDelaney(symbol, stdout);
+		//	printDelaney(&azulenoid, stdout);
+		//}
 	}
 }
 
