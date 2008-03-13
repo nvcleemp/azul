@@ -499,8 +499,10 @@ int isOrientable(DELANEY *symbol){
 }
 
 void makeOrientable(DELANEY *symbol, DELANEY *copy){
-	if(isOrientable(symbol))
+	if(isOrientable(symbol)){
 		copyDelaney(symbol, copy);
+		return;
+	}
 
 	int orientation[symbol->size];
 	int stack[symbol->size];
@@ -524,7 +526,7 @@ void makeOrientable(DELANEY *symbol, DELANEY *copy){
 		}
 	}
 
-	emptyDelaney(copy, symbol->size*2);
+	emptyDelaney(copy, (symbol->size)*2);
 
 	for (i = 0; i < symbol->size; i++) {
 		for (j = 0; j < 2; j++) {
@@ -555,4 +557,224 @@ int hasOnlyTranslation(DELANEY *symbol){
 		if(getChambersInOrbit(symbol, i, 0, 1)!=2*(symbol->m[i][0]) || getChambersInOrbit(symbol, i, 1, 2)!=2*(symbol->m[i][1]) || getChambersInOrbit(symbol, i, 0, 2)!=4)
 			return 0;
 	return 1;
+}
+
+void copyInto(DELANEY *original, DELANEY *copy, int n){
+	copy->size = n*original->size;
+	int i, j, k;
+	for(k=0;k<n;k++){
+		for(j=0;j<original->size;j++){
+			for(i=0;i<3;i++)
+				if(original->chambers[j][i]!=-1)
+					copy->chambers[j + k*original->size][i]=original->chambers[j][i] + k*original->size;
+				else
+					copy->chambers[j + k*original->size][i]=-1;
+			copy->m[j + k*original->size][0]=original->m[j][0];
+			copy->m[j + k*original->size][1]=original->m[j][1];
+		}
+	}
+}
+
+int tryEdge(DELANEY *symbol, int chamber, int sigma){
+	int i;
+	int m;
+	for(i=0; i<3; i++){
+		if(i!=sigma){
+			if(i+sigma==1)
+				m = symbol->m[chamber][0];
+			else if(i+sigma==3)
+				m = symbol->m[chamber][1];
+			else
+				m = 2;
+
+			int sigmas[2];
+			sigmas[0]=i;
+			sigmas[1]=sigma;
+			int j=0;
+			int count=0;
+			int current=chamber;
+			while(symbol->chambers[current][sigmas[j]]!=-1){
+				current = symbol->chambers[current][sigmas[j]];
+				j=(j+1)%2;
+				count++;
+			}
+			if(count==2*m-1){
+				symbol->chambers[chamber][sigma]=current;
+				symbol->chambers[current][sigma]=chamber;
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+void closeOrbits(DELANEY *symbol){
+	int made_change = 1, i, j;
+	while(made_change){
+		made_change=0;
+		for(i=0; i<symbol->size; i++)
+			for(j=0;j<3;j++)
+				if(symbol->chambers[i][j]==-1)
+					made_change = tryEdge(symbol, i, j) || made_change;
+	}
+}
+
+int checkOrbit(DELANEY *symbol, int chamber, int sigma1, int sigma2){
+	int j;
+	int sigmas[2];
+	sigmas[0]=sigma1;
+	sigmas[1]=sigma2;
+	int m;
+	if(sigma1+sigma2==1)
+		m = symbol->m[chamber][0];
+	else if(sigma1+sigma2==3)
+		m = symbol->m[chamber][1];
+	else
+		m = 2;
+	
+	int marker[symbol->size];
+	for(j=0;j<symbol->size;j++)
+		marker[j]=0;
+	marker[chamber]=1;
+		
+	int incompleteOrbit=0;
+	for(j = 0; j<2; j++){
+		int i = j;
+		int next = symbol->chambers[chamber][sigmas[i]];
+		while(next != -1 && !marker[next]){
+			i = (i+1)%2;
+			marker[next]=1;
+			next = symbol->chambers[next][sigmas[i]];
+		}
+		incompleteOrbit = incompleteOrbit || next == -1;
+	}
+
+	int size=0;
+	for(j = 0; j<symbol->size;j++)
+		if(marker[j])
+			size++;
+	if(incompleteOrbit)
+		return size <= 2*m;
+	else
+		return size == 2*m;
+}
+
+int checkOrbits(DELANEY *symbol, int chamber, int sigma){
+	int j;
+	for(j=0;j<3;j++)
+		if(j!=sigma && !checkOrbit(symbol, chamber, sigma, j))
+			return 0;
+	return 1;
+}
+
+void completeSymbol(DELANEY *symbol, DELANEY *original){
+	int n = symbol->size / original->size;
+	int i, j;
+	for(j=0;j<symbol->size;j++)
+		for(i=0;i<3;i++)
+			if(symbol->chambers[j][i]==-1){
+				DELANEY copy;
+				copyDelaney(symbol, &copy);
+				int k;
+				int jIndex = j % original->size;
+				int jSymbol = (j - jIndex)/original->size;
+				for(k=jSymbol + 1;k<n;k++){
+					if(copy.chambers[original->chambers[jIndex][i] + k*original->size][i]==-1){
+						copy.chambers[j][i]=original->chambers[jIndex][i] + k*original->size;
+						copy.chambers[original->chambers[jIndex][i] + k*original->size][i]=j;
+						if(checkOrbits(&copy, j, i)){
+							closeOrbits(&copy);
+							completeSymbol(&copy, original);
+							if(isCompleteSymbol(&copy)){
+								copyDelaney(&copy, symbol);
+								return;
+							}
+						}
+						copy.chambers[j][i]=-1;
+						copy.chambers[original->chambers[jIndex][i] + k*original->size][i]=-1;
+					}
+				}
+			}
+}
+
+int isCompleteSymbol(DELANEY *symbol){
+	int i, j;
+	for(j=0;j<symbol->size;j++)
+		for(i=0;i<3;i++)
+			if(symbol->chambers[j][i]==-1)
+				return 0;
+	return 1;
+}
+
+void makeOnlyTranslation(DELANEY *symbol, DELANEY *cover){
+	DELANEY workcopy;
+	int i;
+	
+	//first make sure the symbol is orientable, then check to see if it contains only translations
+	makeOrientable(symbol, &workcopy);
+	printDelaney(&workcopy,stdout);
+	if(hasOnlyTranslation(&workcopy)){
+		copyDelaney(&workcopy, cover);
+		return;
+	}
+
+	//create fundamental patch
+	DELANEY patch;
+	getFundamentalPatch(&workcopy, &patch);
+	closeOrbits(&patch);
+	
+	//calculate maximum cover size
+	int max = 0;
+	for(i=0; i<workcopy.size;i++){
+		int temp = getV(&workcopy, i, 0, 1);
+		if(temp>max)
+			max=temp;
+	}
+	for(i=0; i<workcopy.size;i++){
+		int temp = getV(&workcopy, i, 0, 2);
+		if(temp>max)
+			max=temp;
+	}
+	for(i=0; i<workcopy.size;i++){
+		int temp = getV(&workcopy, i, 1, 2);
+		if(temp>max)
+			max=temp;
+	}
+
+	//create covers
+	int found_cover = 0;
+	i=2;
+	while(!found_cover && i<=max){
+		copyInto(&patch, cover, i);
+		completeSymbol(cover, &workcopy);
+		found_cover = isCompleteSymbol(cover) && hasOnlyTranslation(cover);
+		i++;
+	}
+}
+
+void getFundamentalPatch(DELANEY *symbol, DELANEY *patch){
+	int i;
+	
+	emptyDelaney(patch, symbol->size);
+
+	int queue[symbol->size];
+	int queueHead = 0;
+	int queueTail = 0;
+	
+	queue[queueTail++]=0;
+	patch->m[0][0]=symbol->m[0][0];
+	patch->m[0][1]=symbol->m[0][1];
+	
+	while(queueTail>queueHead){
+		int current = queue[queueHead++];
+		for(i=0; i<3; i++){
+			if(patch->m[symbol->chambers[current][i]][0]==-1){
+				queue[queueTail++] = symbol->chambers[current][i];
+				patch->m[symbol->chambers[current][i]][0]=symbol->m[symbol->chambers[current][i]][0];
+				patch->m[symbol->chambers[current][i]][1]=symbol->m[symbol->chambers[current][i]][1];
+				patch->chambers[current][i]=symbol->chambers[current][i];
+				patch->chambers[symbol->chambers[current][i]][i]=current;
+			}
+		}
+	}
 }

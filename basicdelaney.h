@@ -78,4 +78,7 @@ void makeOrientable(DELANEY *symbol, DELANEY *copy);
 
 int hasOnlyTranslation(DELANEY *symbol);
 
+void makeOnlyTranslation(DELANEY *symbol, DELANEY *cover);
+
+void getFundamentalPatch(DELANEY *symbol, DELANEY *patch);
 #endif // end if not defined, and end the header file
