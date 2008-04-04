@@ -11,6 +11,7 @@
 #include "basicmath.h"
 #include "utility.h"
 #include "basicdelaney.h"
+#include "periodicgraph.h"
 #include <stdio.h>
 
 #define MAX 124
@@ -32,6 +33,7 @@ DELANEY_COLLECTION octagon_library;
 DELANEY_COLLECTION minimal_octagon_library;
 DELANEY_COLLECTION azulenoid_library;
 DELANEY_COLLECTION minimal_azulenoid_library;
+DELANEY_COLLECTION translation_only_azulenoid_library;
 
 int counter = 0;
 int counter2 = 0;
@@ -494,12 +496,19 @@ int countSpanningOctagons(DELANEY *symbol){
 
 }
 
-void exportOnlyTranslation(){
+void exportOnlyTranslation(int pg){
 	int i;
 	int j=1;
 	for(i=0;i<azulenoid_library.size;i++)
-		if(hasOnlyTranslation(azulenoid_library.collection + i))
-			exportDelaneyNumbered(azulenoid_library.collection + i, j++, (azulenoid_library.collection + i)->comment1, stdout);
+		if(hasOnlyTranslation(azulenoid_library.collection + i)){
+			if(!pg)
+				exportDelaneyNumbered(azulenoid_library.collection + i, j++, (azulenoid_library.collection + i)->comment1, stdout);
+			else{
+				PeriodicGraph graph;
+				if(createPeriodicGraph(azulenoid_library.collection + i, &graph))
+					exportPeriodicGraph(&graph, stdout);
+			}
+		}
 }
 
 struct face_enum{
@@ -665,6 +674,8 @@ int main(int argc, char *argv[])
 	int export_summary = 0;
 	int export_restricted = 0;
     int restriction = 0;
+	int export_cover = 0;
+	int export_pg = 0;
 	int c, error = 0;
 	while (--argc > 0 && (*++argv)[0] == '-'){
 		while ((c = *++argv[0]))
@@ -688,10 +699,16 @@ int main(int argc, char *argv[])
 				export_restricted = 1;
 				restriction = parseNumber(argv);
 				break;
+			case 'c':
+				export_cover = 1;
+				break;
+			case 'p':
+				export_pg = 1;
+				break;
 			case 'h':
 				//print help
 				fprintf(stderr, "The program azul calculates toroidal azulenoids.\n");
-				fprintf(stderr, "Usage: azul [-moatsrh]\n\n");
+				fprintf(stderr, "Usage: azul [-moatsrcph]\n\n");
 				fprintf(stderr, "Valid options:\n");
 				fprintf(stderr, "  -m\t: Output minimal symbols.\n");
 				fprintf(stderr, "  -o\t: Output the calculated octagon tilings.\n");
@@ -793,7 +810,7 @@ int main(int argc, char *argv[])
 	}
 	
 	if(export_onlytranslation){
-		exportOnlyTranslation();
+		exportOnlyTranslation(export_pg);
 	}
 	
 	if(export_restricted){
@@ -815,7 +832,6 @@ int main(int argc, char *argv[])
 				max=temp;
 		}
 	}
-	fprintf(stderr, "\nmax = %d.\n", max);
 	for(i = 0; i<minimal_azulenoid_library.size;i++){
 		DELANEY symbol;
 		makeOrientable(minimal_azulenoid_library.collection+i, &symbol);
@@ -834,6 +850,22 @@ int main(int argc, char *argv[])
 				max=temp;
 		}
 	}
-	
+	if(export_cover){
+		for(i = 0; i<minimal_azulenoid_library.size;i++){
+			DELANEY symbol;
+			fprintf(stderr, "%d \n", i);
+			if(makeOnlyTranslation(minimal_azulenoid_library.collection+i, &symbol))
+				addSymbol2Library(&symbol, &translation_only_azulenoid_library);
+		}
+		if(export_pg) {
+			for(i = 0; i<translation_only_azulenoid_library.size;i++){
+				PeriodicGraph graph;
+				if(createPeriodicGraph(translation_only_azulenoid_library.collection + i, &graph))
+					exportPeriodicGraph(&graph, stdout);
+			}
+		} else {
+			exportLibrary(&translation_only_azulenoid_library, 1, stdout);
+		}
+	}
 	return 0;
 }
