@@ -10,7 +10,7 @@
 #ifndef _BASICDELANEY_H // if not defined
 #define _BASICDELANEY_H // define BasicDelaney
 
-#define DELANEYSIZE 120
+#define DELANEYSIZE 720
 #define COLLECTIONSIZE 2000
 
 #include <stdio.h>
@@ -78,7 +78,9 @@ void makeOrientable(DELANEY *symbol, DELANEY *copy);
 
 int hasOnlyTranslation(DELANEY *symbol);
 
-void makeOnlyTranslation(DELANEY *symbol, DELANEY *cover);
+int makeOnlyTranslation(DELANEY *symbol, DELANEY *cover);
 
-void getFundamentalPatch(DELANEY *symbol, DELANEY *patch);
+void symbolBFS(DELANEY *symbol, DELANEY *tree);
+
+void symbolDFS(DELANEY *symbol, DELANEY *tree, int *sigmas, int parent);
 #endif // end if not defined, and end the header file

@@ -17,11 +17,11 @@
 
 void printDelaney(DELANEY *symbol, FILE *f){
 	int i;
-	fprintf(f, "|    | s0 | s1 | s2 | m01 | m12 |\n");
-	fprintf(f, "|===============================|\n");
+	fprintf(f, "|     | s0  | s1  | s2  | m01 | m12 |\n");
+	fprintf(f, "|===================================|\n");
 	for(i = 0; i<symbol->size; i++)
-		fprintf(f, "| %2d | %2d | %2d | %2d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m[i][0], symbol->m[i][1]);
-	fprintf(f, "|===============================|\n");
+		fprintf(f, "| %3d | %3d | %3d | %3d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m[i][0], symbol->m[i][1]);
+	fprintf(f, "|===================================|\n");
 	fprintf(f, "\n\n");
 }
 
@@ -323,6 +323,12 @@ int compare(DELANEY *symbol1, DELANEY *symbol2){
 	return 0;
 }
 
+int debug = 0;
+
+void doDebug(int i){
+	debug=i;
+}
+
 /*
  * When this method returns relabelling will contain a canonical relabelling of the chambers 
  * that gives the chamber 'start' the label '0'.
@@ -361,8 +367,9 @@ void apply_relabelling(DELANEY *origin, int *relabelling, DELANEY *image){
 	int reverse_labelling[origin->size];
 	int i;
 	image->size = origin->size;
-	for(i=0; i<origin->size; i++)
+	for(i=0; i<origin->size; i++){
 		reverse_labelling[relabelling[i]] = i;
+	}
 	
 	for(i=0; i<origin->size; i++){
 		image->m[i][0] = origin->m[relabelling[i]][0];
@@ -575,7 +582,7 @@ void copyInto(DELANEY *original, DELANEY *copy, int n){
 	}
 }
 
-int tryEdge(DELANEY *symbol, int chamber, int sigma){
+void tryEdge(DELANEY *symbol, int chamber, int sigma){
 	int i;
 	int m;
 	for(i=0; i<3; i++){
@@ -601,22 +608,38 @@ int tryEdge(DELANEY *symbol, int chamber, int sigma){
 			if(count==2*m-1){
 				symbol->chambers[chamber][sigma]=current;
 				symbol->chambers[current][sigma]=chamber;
-				return 1;
+				if(i*sigma!=0)
+					tryOrbit(symbol, chamber, sigma, 0);
+				else if(i+sigma==1)
+					tryOrbit(symbol, chamber, sigma, 2);
+				else if(i+sigma==2)
+					tryOrbit(symbol, chamber, sigma, 1);
+				return;
 			}
 		}
 	}
-	return 0;
+}
+
+void tryOrbit(DELANEY *symbol, int chamber, int sigma1, int sigma2){
+	int sigmas[2];
+	sigmas[0] = sigma1;
+	sigmas[1] = sigma2;
+	int i = 0;
+	int current = chamber;
+	while(symbol->chambers[current][sigmas[i]]!=-1 && symbol->chambers[current][sigmas[i]]!=chamber){
+		current = symbol->chambers[current][sigmas[i]];
+		i = (i+1)%2;
+	}
+	if(symbol->chambers[current][sigmas[i]]!=chamber)
+		tryEdge(symbol, current, sigmas[i]);
 }
 
 void closeOrbits(DELANEY *symbol){
-	int made_change = 1, i, j;
-	while(made_change){
-		made_change=0;
-		for(i=0; i<symbol->size; i++)
-			for(j=0;j<3;j++)
-				if(symbol->chambers[i][j]==-1)
-					made_change = tryEdge(symbol, i, j) || made_change;
-	}
+	int i, j;
+	for(i=0; i<symbol->size; i++)
+		for(j=0;j<3;j++)
+			if(symbol->chambers[i][j]==-1)
+				tryEdge(symbol, i, j);
 }
 
 int checkOrbit(DELANEY *symbol, int chamber, int sigma1, int sigma2){
@@ -667,36 +690,6 @@ int checkOrbits(DELANEY *symbol, int chamber, int sigma){
 	return 1;
 }
 
-void completeSymbol(DELANEY *symbol, DELANEY *original){
-	int n = symbol->size / original->size;
-	int i, j;
-	for(j=0;j<symbol->size;j++)
-		for(i=0;i<3;i++)
-			if(symbol->chambers[j][i]==-1){
-				DELANEY copy;
-				copyDelaney(symbol, &copy);
-				int k;
-				int jIndex = j % original->size;
-				int jSymbol = (j - jIndex)/original->size;
-				for(k=jSymbol + 1;k<n;k++){
-					if(copy.chambers[original->chambers[jIndex][i] + k*original->size][i]==-1){
-						copy.chambers[j][i]=original->chambers[jIndex][i] + k*original->size;
-						copy.chambers[original->chambers[jIndex][i] + k*original->size][i]=j;
-						if(checkOrbits(&copy, j, i)){
-							closeOrbits(&copy);
-							completeSymbol(&copy, original);
-							if(isCompleteSymbol(&copy)){
-								copyDelaney(&copy, symbol);
-								return;
-							}
-						}
-						copy.chambers[j][i]=-1;
-						copy.chambers[original->chambers[jIndex][i] + k*original->size][i]=-1;
-					}
-				}
-			}
-}
-
 int isCompleteSymbol(DELANEY *symbol){
 	int i, j;
 	for(j=0;j<symbol->size;j++)
@@ -706,75 +699,150 @@ int isCompleteSymbol(DELANEY *symbol){
 	return 1;
 }
 
-void makeOnlyTranslation(DELANEY *symbol, DELANEY *cover){
+int completeSymbol(DELANEY *symbol, DELANEY *original, int start){
+	int n = symbol->size / original->size;
+	int i, j;
+	for(j=start;j<symbol->size;j++)
+		for(i=0;i<3;i++)
+			if(symbol->chambers[j][i]==-1){
+				int k;
+				int jIndex = j % original->size;
+				int jSymbol = (j - jIndex)/original->size;
+				for(k=jSymbol;k<n;k++){ //k must start from jSymbol and not from jSymbol + 1 !!!
+					if(original->chambers[jIndex][i] + k*original->size > j && symbol->chambers[original->chambers[jIndex][i] + k*original->size][i]==-1){
+						DELANEY copy;
+						copyDelaney(symbol, &copy);
+						copy.chambers[j][i]=original->chambers[jIndex][i] + k*original->size;
+						copy.chambers[original->chambers[jIndex][i] + k*original->size][i]=j;
+						if(checkOrbits(&copy, j, i)){
+							closeOrbits(&copy);
+							if(completeSymbol(&copy, original, j)){
+								copyDelaney(&copy, symbol);
+								return 1;
+							}
+						}
+					}
+				}
+			}
+	return (isCompleteSymbol(symbol) && hasOnlyTranslation(symbol));
+}
+
+int makeOnlyTranslation(DELANEY *symbol, DELANEY *cover){
 	DELANEY workcopy;
 	int i;
 	
 	//first make sure the symbol is orientable, then check to see if it contains only translations
 	makeOrientable(symbol, &workcopy);
-	printDelaney(&workcopy,stdout);
 	if(hasOnlyTranslation(&workcopy)){
 		copyDelaney(&workcopy, cover);
-		return;
+		return 1;
+	}
+	
+	//calculate maximum cover size
+	int max = 0;
+	int max_chamber = -1;
+	int max_sigmas[3];
+	for(i=0; i<workcopy.size;i++){
+		int temp = getV(&workcopy, i, 0, 1);
+		if(temp>max){
+			max=temp;
+			max_chamber = i;
+			max_sigmas[0] = 0;
+			max_sigmas[1] = 1;
+			max_sigmas[2] = 2;
+		}
+	}
+	for(i=0; i<workcopy.size;i++){
+		int temp = getV(&workcopy, i, 0, 2);
+		if(temp>max){
+			max=temp;
+			max_chamber = i;
+			max_sigmas[0] = 0;
+			max_sigmas[1] = 2;
+			max_sigmas[2] = 1;
+		}
+	}
+	for(i=0; i<workcopy.size;i++){
+		int temp = getV(&workcopy, i, 1, 2);
+		if(temp>max){
+			max=temp;
+			max_chamber = i;
+			max_sigmas[0] = 1;
+			max_sigmas[1] = 2;
+			max_sigmas[2] = 0;
+		}
 	}
 
 	//create fundamental patch
 	DELANEY patch;
-	getFundamentalPatch(&workcopy, &patch);
+	emptyDelaney(&patch, workcopy.size);
+	patch.m[max_chamber][0]=workcopy.m[max_chamber][0];
+	patch.m[max_chamber][1]=workcopy.m[max_chamber][1];
+	symbolDFS(&workcopy, &patch, max_sigmas, max_chamber);
 	closeOrbits(&patch);
 	
-	//calculate maximum cover size
-	int max = 0;
-	for(i=0; i<workcopy.size;i++){
-		int temp = getV(&workcopy, i, 0, 1);
-		if(temp>max)
-			max=temp;
+	//create cover
+	copyInto(&patch, cover, max);
+	
+	//close max branching orbit
+	int j=0;
+	int count=0;
+	int current=max_chamber;
+	while(workcopy.chambers[current][max_sigmas[j]]!=max_chamber){
+		for(i = 0; i<max; i++){
+			cover->chambers[current + i*workcopy.size][max_sigmas[j]] = workcopy.chambers[current][max_sigmas[j]] + i*workcopy.size;
+			cover->chambers[workcopy.chambers[current][max_sigmas[j]] + i*workcopy.size][max_sigmas[j]] = current + i*workcopy.size;
+		}
+		current = workcopy.chambers[current][max_sigmas[j]];
+		j=(j+1)%2;
+		count++;
+	}	
+	for(i = 0; i<max; i++){
+		cover->chambers[current + i*workcopy.size][max_sigmas[1]] = workcopy.chambers[current][max_sigmas[1]] + ((i + 1)%max)*workcopy.size;
+		cover->chambers[workcopy.chambers[current][max_sigmas[1]] + ((i + 1)%max)*workcopy.size][max_sigmas[1]] = current + i*workcopy.size;
 	}
-	for(i=0; i<workcopy.size;i++){
-		int temp = getV(&workcopy, i, 0, 2);
-		if(temp>max)
-			max=temp;
-	}
-	for(i=0; i<workcopy.size;i++){
-		int temp = getV(&workcopy, i, 1, 2);
-		if(temp>max)
-			max=temp;
-	}
+	closeOrbits(cover);
 
-	//create covers
-	int found_cover = 0;
-	i=2;
-	while(!found_cover && i<=max){
-		copyInto(&patch, cover, i);
-		completeSymbol(cover, &workcopy);
-		found_cover = isCompleteSymbol(cover) && hasOnlyTranslation(cover);
-		i++;
-	}
+	//try closing remaining orbit
+	return completeSymbol(cover, &workcopy, 0);
 }
 
-void getFundamentalPatch(DELANEY *symbol, DELANEY *patch){
+void symbolBFS(DELANEY *symbol, DELANEY *tree){
 	int i;
 	
-	emptyDelaney(patch, symbol->size);
+	emptyDelaney(tree, symbol->size);
 
 	int queue[symbol->size];
 	int queueHead = 0;
 	int queueTail = 0;
 	
 	queue[queueTail++]=0;
-	patch->m[0][0]=symbol->m[0][0];
-	patch->m[0][1]=symbol->m[0][1];
+	tree->m[0][0]=symbol->m[0][0];
+	tree->m[0][1]=symbol->m[0][1];
 	
 	while(queueTail>queueHead){
 		int current = queue[queueHead++];
 		for(i=0; i<3; i++){
-			if(patch->m[symbol->chambers[current][i]][0]==-1){
+			if(tree->m[symbol->chambers[current][i]][0]==-1){
 				queue[queueTail++] = symbol->chambers[current][i];
-				patch->m[symbol->chambers[current][i]][0]=symbol->m[symbol->chambers[current][i]][0];
-				patch->m[symbol->chambers[current][i]][1]=symbol->m[symbol->chambers[current][i]][1];
-				patch->chambers[current][i]=symbol->chambers[current][i];
-				patch->chambers[symbol->chambers[current][i]][i]=current;
+				tree->m[symbol->chambers[current][i]][0]=symbol->m[symbol->chambers[current][i]][0];
+				tree->m[symbol->chambers[current][i]][1]=symbol->m[symbol->chambers[current][i]][1];
+				tree->chambers[current][i]=symbol->chambers[current][i];
+				tree->chambers[symbol->chambers[current][i]][i]=current;
 			}
 		}
 	}
+}
+
+void symbolDFS(DELANEY *symbol, DELANEY *tree, int *sigmas, int parent){
+	int i;
+	for(i=0; i<3; i++){
+		if(tree->m[symbol->chambers[parent][sigmas[i]]][0]==-1){
+			tree->m[symbol->chambers[parent][sigmas[i]]][0]=symbol->m[symbol->chambers[parent][sigmas[i]]][0];
+			tree->m[symbol->chambers[parent][sigmas[i]]][1]=symbol->m[symbol->chambers[parent][sigmas[i]]][1];
+			tree->chambers[parent][sigmas[i]]=symbol->chambers[parent][sigmas[i]];
+			tree->chambers[symbol->chambers[parent][sigmas[i]]][sigmas[i]]=parent;
+			symbolDFS(symbol, tree, sigmas, symbol->chambers[parent][sigmas[i]]);
+		}
+	}	
 }
