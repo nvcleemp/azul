@@ -18,6 +18,8 @@ struct __pgraph{
 	int order;
 	int size;
 	struct __pgedge *edges;
+	double x[120];//TODO: make pointer and use malloc
+	double y[120];//TODO: make pointer and use malloc
 };
 
 struct __pgedge{

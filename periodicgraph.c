@@ -371,16 +371,19 @@ int createPeriodicGraphFromQuadrangularPatch(DELANEY *symbol, PeriodicGraph *gra
 	
 	for(i=0; i<symbol->size; i++)
 		if(vertexMarker[i]==-1){
-				vertexMarker[i]=vertexCount;
-				vertexMarker[symbol->chambers[i][1]]=vertexCount;
-				int next = symbol->chambers[symbol->chambers[i][1]][2];
-				while(next!=i){
-					vertexMarker[next]=vertexCount;
-					vertexMarker[symbol->chambers[next][1]]=vertexCount;
-					next = symbol->chambers[symbol->chambers[next][1]][2];	
-				}
-				vertexCount++;
+			vertexMarker[i]=vertexCount;
+			vertexMarker[symbol->chambers[i][1]]=vertexCount;
+			int next = symbol->chambers[symbol->chambers[i][1]][2];
+			while(next!=i){
+				vertexMarker[next]=vertexCount;
+				vertexMarker[symbol->chambers[next][1]]=vertexCount;
+				next = symbol->chambers[symbol->chambers[next][1]][2];	
+			}
+			graph->x[vertexCount]=0.0;
+			graph->y[vertexCount]=0.0;
+			vertexCount++;
 		}
+
 	
 	int edgeMarker[symbol->size];
 	int edgeCount = 0;
@@ -407,15 +410,40 @@ int createPeriodicGraphFromQuadrangularPatch(DELANEY *symbol, PeriodicGraph *gra
 	
 	//PGEdge *edges = (PGEdge *)malloc(edgeCount*sizeof(PGEdge));
 	PGEdge edges[edgeCount];
-	
+
 	struct EdgeElement *current = edgeWestStart;
 	
+	int westLength = 0;
+	while(current!=edgeWestEnd){
+		westLength++;
+		current = current->next;
+	}
+	
+	current = edgeNorthStart;
+	
+	int northLength = 0;
+	while(current!=edgeNorthEnd){
+		northLength++;
+		current = current->next;
+	}
+	current = edgeWestStart;
+
+	double yStep = 2.0/((westLength+1)/2 + 1);
+	double xStep = 2.0/((northLength+1)/2 + 1);
+	double yPos = 1.0 - yStep;
+	double xPos = -1.0 + xStep/2;
+
 	while(current!=edgeWestEnd){
 		if(!edgeMarker[current->fromChamber] && current->sigma==0 && current->toNext==2){
 			(edges + edgeCounter)->from = vertexMarker[current->fromChamber];
 			(edges + edgeCounter)->to = vertexMarker[symbol->chambers[current->fromChamber][0]];
 			(edges + edgeCounter)->x = -1;
 			(edges + edgeCounter)->y = 0;
+			graph->x[vertexMarker[current->fromChamber]] = xPos;
+			graph->y[vertexMarker[current->fromChamber]] = yPos;
+			graph->x[vertexMarker[symbol->chambers[current->fromChamber][0]]] = - xPos;
+			graph->y[vertexMarker[symbol->chambers[current->fromChamber][0]]] = yPos;
+			yPos = yPos - yStep;
 			edgeCounter++;
 			markorbit(symbol, edgeMarker, current->fromChamber, 0, 2, 0);
 		}
@@ -423,13 +451,20 @@ int createPeriodicGraphFromQuadrangularPatch(DELANEY *symbol, PeriodicGraph *gra
 	}
 	
 	current = edgeNorthStart;
-	
+	xPos += xStep/2;
+	yPos += yStep/2;
+
 	while(current!=edgeNorthEnd){
 		if(!edgeMarker[current->fromChamber] && current->sigma==0 && current->toNext==2){
 			(edges + edgeCounter)->from = vertexMarker[current->fromChamber];
 			(edges + edgeCounter)->to = vertexMarker[symbol->chambers[current->fromChamber][0]];
 			(edges + edgeCounter)->x = 0;
 			(edges + edgeCounter)->y = -1;
+			graph->x[vertexMarker[current->fromChamber]] = xPos;
+			graph->y[vertexMarker[current->fromChamber]] = yPos;
+			graph->x[vertexMarker[symbol->chambers[current->fromChamber][0]]] = xPos;
+			graph->y[vertexMarker[symbol->chambers[current->fromChamber][0]]] = - yPos;
+			xPos = xPos + xStep;
 			edgeCounter++;
 			markorbit(symbol, edgeMarker, current->fromChamber, 0, 2, 0);
 		}
@@ -583,15 +618,17 @@ int createPeriodicGraphFromHexagonalPatch(DELANEY *symbol, PeriodicGraph *graph,
 	
 	for(i=0; i<symbol->size; i++)
 		if(vertexMarker[i]==-1){
-				vertexMarker[i]=vertexCount;
-				vertexMarker[symbol->chambers[i][1]]=vertexCount;
-				int next = symbol->chambers[symbol->chambers[i][1]][2];
-				while(next!=i){
-					vertexMarker[next]=vertexCount;
-					vertexMarker[symbol->chambers[next][1]]=vertexCount;
-					next = symbol->chambers[symbol->chambers[next][1]][2];	
-				}
-				vertexCount++;
+			vertexMarker[i]=vertexCount;
+			vertexMarker[symbol->chambers[i][1]]=vertexCount;
+			int next = symbol->chambers[symbol->chambers[i][1]][2];
+			while(next!=i){
+				vertexMarker[next]=vertexCount;
+				vertexMarker[symbol->chambers[next][1]]=vertexCount;
+				next = symbol->chambers[symbol->chambers[next][1]][2];	
+			}
+			graph->x[vertexCount]=0.0;
+			graph->y[vertexCount]=0.0;
+			vertexCount++;
 		}
 	
 	int edgeMarker[symbol->size];
@@ -621,6 +658,36 @@ int createPeriodicGraphFromHexagonalPatch(DELANEY *symbol, PeriodicGraph *graph,
 	PGEdge edges[edgeCount];
 	
 	struct EdgeElement *current = edgeFirstStart;
+
+	int firstLength = 0;
+	while(current!=edgeFirstEnd){
+		firstLength++;
+		current = current->next;
+	}
+
+	current = edgeSecondStart;
+	
+	int secondLength = 0;
+	while(current!=edgeSecondEnd){
+		secondLength++;
+		current = current->next;
+	}
+
+	current = edgeThirdStart;
+	
+	int thirdLength = 0;
+	while(current!=edgeThirdEnd){
+		thirdLength++;
+		current = current->next;
+	}
+
+	current = edgeFirstStart;
+	
+	double yStep = 1.0/((firstLength+1)/2 + 1);
+	double stepDiag = 0.5/((secondLength+1)/2 + 1);
+	double xStep = 1.0/((thirdLength+1)/2 + 1);
+	double yPos = 0.5 - yStep;
+	double xPos = -1.0 + stepDiag/2;
 	
 	while(current!=edgeFirstEnd){
 		if(!edgeMarker[current->fromChamber] && current->sigma==0 && current->toNext==2){
@@ -628,6 +695,11 @@ int createPeriodicGraphFromHexagonalPatch(DELANEY *symbol, PeriodicGraph *graph,
 			(edges + edgeCounter)->to = vertexMarker[symbol->chambers[current->fromChamber][0]];
 			(edges + edgeCounter)->x = -1;
 			(edges + edgeCounter)->y = 0;
+			graph->x[vertexMarker[current->fromChamber]] = xPos;
+			graph->y[vertexMarker[current->fromChamber]] = yPos;
+			graph->x[vertexMarker[symbol->chambers[current->fromChamber][0]]] = - xPos;
+			graph->y[vertexMarker[symbol->chambers[current->fromChamber][0]]] = yPos;
+			yPos -= yStep;
 			edgeCounter++;
 			markorbit(symbol, edgeMarker, current->fromChamber, 0, 2, 0);
 		}
@@ -635,6 +707,8 @@ int createPeriodicGraphFromHexagonalPatch(DELANEY *symbol, PeriodicGraph *graph,
 	}
 	
 	current = edgeSecondStart;
+	xPos += stepDiag/2;
+	yPos += yStep/2;
 	
 	while(current!=edgeSecondEnd){
 		if(!edgeMarker[current->fromChamber] && current->sigma==0 && current->toNext==2){
@@ -642,6 +716,12 @@ int createPeriodicGraphFromHexagonalPatch(DELANEY *symbol, PeriodicGraph *graph,
 			(edges + edgeCounter)->to = vertexMarker[symbol->chambers[current->fromChamber][0]];
 			(edges + edgeCounter)->x = -1;
 			(edges + edgeCounter)->y = -1;
+			graph->x[vertexMarker[current->fromChamber]] = xPos;
+			graph->y[vertexMarker[current->fromChamber]] = yPos;
+			graph->x[vertexMarker[symbol->chambers[current->fromChamber][0]]] = - xPos;
+			graph->y[vertexMarker[symbol->chambers[current->fromChamber][0]]] = - yPos;
+			yPos -= stepDiag;
+			xPos += stepDiag;
 			edgeCounter++;
 			markorbit(symbol, edgeMarker, current->fromChamber, 0, 2, 0);
 		}
@@ -649,6 +729,8 @@ int createPeriodicGraphFromHexagonalPatch(DELANEY *symbol, PeriodicGraph *graph,
 	}
 	
 	current = edgeThirdStart;
+	xPos += xStep/2;
+	yPos += stepDiag/2;
 	
 	while(current!=edgeThirdEnd){
 		if(!edgeMarker[current->fromChamber] && current->sigma==0 && current->toNext==2){
@@ -656,6 +738,11 @@ int createPeriodicGraphFromHexagonalPatch(DELANEY *symbol, PeriodicGraph *graph,
 			(edges + edgeCounter)->to = vertexMarker[symbol->chambers[current->fromChamber][0]];
 			(edges + edgeCounter)->x = 0;
 			(edges + edgeCounter)->y = -1;
+			graph->x[vertexMarker[current->fromChamber]] = xPos;
+			graph->y[vertexMarker[current->fromChamber]] = yPos;
+			graph->x[vertexMarker[symbol->chambers[current->fromChamber][0]]] = xPos;
+			graph->y[vertexMarker[symbol->chambers[current->fromChamber][0]]] = - yPos;
+			xPos += xStep;
 			edgeCounter++;
 			markorbit(symbol, edgeMarker, current->fromChamber, 0, 2, 0);
 		}
@@ -776,8 +863,8 @@ void exportPeriodicGraph(PeriodicGraph *graph, FILE *f){
 	int i;
 	fprintf(f, "%d|2 2|", graph->order);
 	for(i = 1; i<graph->order; i++)
-		fprintf(f, "0 0;");
-	fprintf(f, "0 0|");
+		fprintf(f, "%f %f;", graph->x[i-1], graph->y[i-1]);
+	fprintf(f, "%f %f|", graph->x[graph->order-1], graph->y[graph->order-1]);
 	
 	for(i=0; i<graph->size-1;i++)
 		fprintf(f, "%d %d %d %d;", (graph->edges + i)->from, (graph->edges + i)->to, (graph->edges + i)->x, (graph->edges + i)->y);
