@@ -34,6 +34,6 @@ typedef struct __pgedge PGEdge;
 
 int createPeriodicGraph(DELANEY *symbol, PeriodicGraph *graph);
 
-void exportPeriodicGraph(PeriodicGraph *graph, FILE *f);
+void exportPeriodicGraph(PeriodicGraph *graph, FILE *f, int endLine);
 
 #endif // end if not defined, and end the header file

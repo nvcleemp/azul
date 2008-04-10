@@ -506,7 +506,9 @@ void exportOnlyTranslation(int pg){
 			else{
 				PeriodicGraph graph;
 				if(createPeriodicGraph(azulenoid_library.collection + i, &graph))
-					exportPeriodicGraph(&graph, stdout);
+					exportPeriodicGraph(&graph, stdout, 0);
+					fprintf(stdout, " # ");
+					exportDelaney(azulenoid_library.collection + i,stdout);
 			}
 		}
 }
@@ -860,8 +862,11 @@ int main(int argc, char *argv[])
 		if(export_pg) {
 			for(i = 0; i<translation_only_azulenoid_library.size;i++){
 				PeriodicGraph graph;
-				if(createPeriodicGraph(translation_only_azulenoid_library.collection + i, &graph))
-					exportPeriodicGraph(&graph, stdout);
+				if(createPeriodicGraph(translation_only_azulenoid_library.collection + i, &graph)){
+					exportPeriodicGraph(&graph, stdout, 0);
+					fprintf(stdout, " # ");
+					exportDelaney(minimal_azulenoid_library.collection+i,stdout);
+				}
 			}
 		} else {
 			exportLibrary(&translation_only_azulenoid_library, 1, stdout);

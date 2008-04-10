@@ -859,7 +859,7 @@ int createPeriodicGraph(DELANEY *symbol, PeriodicGraph *graph){
 
 }
 
-void exportPeriodicGraph(PeriodicGraph *graph, FILE *f){
+void exportPeriodicGraph(PeriodicGraph *graph, FILE *f, int endLine){
 	int i;
 	fprintf(f, "%d|2 2|", graph->order);
 	for(i = 1; i<graph->order; i++)
@@ -869,5 +869,8 @@ void exportPeriodicGraph(PeriodicGraph *graph, FILE *f){
 	for(i=0; i<graph->size-1;i++)
 		fprintf(f, "%d %d %d %d;", (graph->edges + i)->from, (graph->edges + i)->to, (graph->edges + i)->x, (graph->edges + i)->y);
 	i = graph->size-1;
-	fprintf(f, "%d %d %d %d\n", (graph->edges + i)->from, (graph->edges + i)->to, (graph->edges + i)->x, (graph->edges + i)->y);
+	if(endLine)
+		fprintf(f, "%d %d %d %d\n", (graph->edges + i)->from, (graph->edges + i)->to, (graph->edges + i)->x, (graph->edges + i)->y);
+	else
+		fprintf(f, "%d %d %d %d", (graph->edges + i)->from, (graph->edges + i)->to, (graph->edges + i)->x, (graph->edges + i)->y);
 }
