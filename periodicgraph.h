@@ -17,7 +17,9 @@
 struct __pgraph{
 	int order;
 	int size;
+	int faceCount;
 	struct __pgedge *edges;
+	struct __pgface *faces;
 	double x[120];//TODO: make pointer and use malloc
 	double y[120];//TODO: make pointer and use malloc
 };
@@ -29,8 +31,15 @@ struct __pgedge{
 	int y;
 };
 
+struct __pgface{
+	int order;
+	//int *vertices; TODO: use malloc
+	int vertices[60];
+};
+
 typedef struct __pgraph PeriodicGraph;
 typedef struct __pgedge PGEdge;
+typedef struct __pgface PGFace;
 
 int createPeriodicGraph(DELANEY *symbol, PeriodicGraph *graph);
 

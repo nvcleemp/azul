@@ -484,9 +484,59 @@ int createPeriodicGraphFromQuadrangularPatch(DELANEY *symbol, PeriodicGraph *gra
 	if(edgeCounter!=edgeCount)
 		return 0;
 	
+	//mark faces
+	int faceMarker[symbol->size];
+	int faceCount = 0;
+	for(i=0; i<symbol->size; i++)
+		faceMarker[i]=0;
+	
+	for(i=0; i<symbol->size; i++)
+		if(!faceMarker[i]){
+			faceMarker[i]=1;
+			faceMarker[symbol->chambers[i][0]]=1;
+			int next = symbol->chambers[symbol->chambers[i][0]][1];
+			while(next!=i){
+				faceMarker[next]=1;
+				faceMarker[symbol->chambers[next][0]]=1;
+				next = symbol->chambers[symbol->chambers[next][0]][1];	
+			}
+			faceCount++;
+		}
+
+	//PGFace *faces = (PGFace *)malloc(faceCount*sizeof(PGFace));
+	PGFace faces[faceCount];
+	int faceCounter = 0;
+
+	for(i=0; i<symbol->size; i++)
+		faceMarker[i]=0;
+	
+	for(i=0; i<symbol->size; i++)
+		if(!faceMarker[i]){
+			//int* faceVertices = (int *)malloc((symbol->m[i][0])*sizeof(int)); //TODO: free
+			int j = 0;
+			//faceVertices[j]=vertexMarker[i];
+			(faces + faceCounter) -> vertices[j]=vertexMarker[i];
+			faceMarker[i]=1;
+			faceMarker[symbol->chambers[i][0]]=1;
+			int next = symbol->chambers[symbol->chambers[i][0]][1];
+			while(next!=i){
+				j++;
+				faceMarker[next]=1;
+				faceMarker[symbol->chambers[next][0]]=1;
+				//faceVertices[j]=vertexMarker[next];
+				(faces + faceCounter) -> vertices[j]=vertexMarker[next];
+				next = symbol->chambers[symbol->chambers[next][0]][1];	
+			}
+			//(faces + faceCounter) -> vertices = faceVertices;
+			(faces + faceCounter) -> order = symbol->m[i][0];
+			faceCounter++;
+		}
+	
 	graph->edges = edges;
+	graph->faces = faces;
 	graph->size = edgeCount;
 	graph->order = vertexCount;
+	graph->faceCount = faceCount;
 
 	//TODO: free edge of patch
 
@@ -762,9 +812,59 @@ int createPeriodicGraphFromHexagonalPatch(DELANEY *symbol, PeriodicGraph *graph,
 	if(edgeCounter!=edgeCount)
 		return 0;
 	
+	//mark faces
+	int faceMarker[symbol->size];
+	int faceCount = 0;
+	for(i=0; i<symbol->size; i++)
+		faceMarker[i]=0;
+	
+	for(i=0; i<symbol->size; i++)
+		if(!faceMarker[i]){
+			faceMarker[i]=1;
+			faceMarker[symbol->chambers[i][0]]=1;
+			int next = symbol->chambers[symbol->chambers[i][0]][1];
+			while(next!=i){
+				faceMarker[next]=1;
+				faceMarker[symbol->chambers[next][0]]=1;
+				next = symbol->chambers[symbol->chambers[next][0]][1];	
+			}
+			faceCount++;
+		}
+
+	//PGFace *faces = (PGFace *)malloc(faceCount*sizeof(PGFace));
+	PGFace faces[faceCount];
+	int faceCounter = 0;
+
+	for(i=0; i<symbol->size; i++)
+		faceMarker[i]=0;
+	
+	for(i=0; i<symbol->size; i++)
+		if(!faceMarker[i]){
+			//int* faceVertices = (int *)malloc((symbol->m[i][0])*sizeof(int)); //TODO: free
+			int j = 0;
+			//faceVertices[j]=vertexMarker[i];
+			(faces + faceCounter) -> vertices[j]=vertexMarker[i];
+			faceMarker[i]=1;
+			faceMarker[symbol->chambers[i][0]]=1;
+			int next = symbol->chambers[symbol->chambers[i][0]][1];
+			while(next!=i){
+				j++;
+				faceMarker[next]=1;
+				faceMarker[symbol->chambers[next][0]]=1;
+				//faceVertices[j]=vertexMarker[next];
+				(faces + faceCounter) -> vertices[j]=vertexMarker[next];
+				next = symbol->chambers[symbol->chambers[next][0]][1];	
+			}
+			//(faces + faceCounter) -> vertices = faceVertices;
+			(faces + faceCounter) -> order = symbol->m[i][0];
+			faceCounter++;
+		}
+	
 	graph->edges = edges;
+	graph->faces = faces;
 	graph->size = edgeCount;
 	graph->order = vertexCount;
+	graph->faceCount = faceCount;
 
 	//TODO: free edge of patch
 
@@ -869,8 +969,23 @@ void exportPeriodicGraph(PeriodicGraph *graph, FILE *f, int endLine){
 	for(i=0; i<graph->size-1;i++)
 		fprintf(f, "%d %d %d %d;", (graph->edges + i)->from, (graph->edges + i)->to, (graph->edges + i)->x, (graph->edges + i)->y);
 	i = graph->size-1;
+	fprintf(f, "%d %d %d %d |", (graph->edges + i)->from, (graph->edges + i)->to, (graph->edges + i)->x, (graph->edges + i)->y);
+
+	int j;
+	for(i=0; i<graph->faceCount-1;i++){
+		for(j=0; j<(graph->faces+i)->order-1; j++)
+			fprintf(f, "%d ", (graph->faces+i)->vertices[j]);
+		j=(graph->faces+i)->order-1;
+		fprintf(f, "%d;", (graph->faces+i)->vertices[j]);
+		}
+		
+	i = graph->faceCount-1;
+	for(j=0; j<(graph->faces+i)->order-1; j++)
+		fprintf(f, "%d ", (graph->faces+i)->vertices[j]);
+	j=(graph->faces+i)->order-1;
+	
 	if(endLine)
-		fprintf(f, "%d %d %d %d\n", (graph->edges + i)->from, (graph->edges + i)->to, (graph->edges + i)->x, (graph->edges + i)->y);
+		fprintf(f, "%d\n", (graph->faces+i)->vertices[j]);
 	else
-		fprintf(f, "%d %d %d %d", (graph->edges + i)->from, (graph->edges + i)->to, (graph->edges + i)->x, (graph->edges + i)->y);
+		fprintf(f, "%d", (graph->faces+i)->vertices[j]);
 }
