@@ -4,7 +4,7 @@
  *
  *  Created by Nico Van Cleemput on 07/11/07.
  * 
- *  gcc azul.c basicmath.c basicdelaney.o -o azul -Wall
+ *  gcc azul.c basicmath.c basicdelaney.o periodicgraph.o -o azul -Wall
  *
  */
 
@@ -505,22 +505,23 @@ void exportOnlyTranslation(int pg){
 				exportDelaneyNumbered(azulenoid_library.collection + i, j++, (azulenoid_library.collection + i)->comment1, stdout);
 			else{
 				PeriodicGraph graph;
-				if(createPeriodicGraph(azulenoid_library.collection + i, &graph))
+				if(createPeriodicGraph(azulenoid_library.collection + i, &graph)){
 					exportPeriodicGraph(&graph, stdout, 0);
 					fprintf(stdout, " # ");
 					exportDelaney(azulenoid_library.collection + i,stdout);
+				}
 			}
 		}
 }
 
 struct face_enum{
-	int faces[10];
+	int faces[20];
 	int size;
 };
 
 struct face_enum_collection{
-	struct face_enum collection[190];
-	int frequency[190];
+	struct face_enum collection[200];
+	int frequency[200];
 	int collection_size;
 };
 
@@ -587,12 +588,16 @@ void printLibraryFaceSummary(DELANEY_COLLECTION *library, FILE *f){
 	fprintf(f, "\nmaximum size of a face: %d\nmaximum number of faces: %d\n", max, max_num);
 	fprintf(f, "Number of different face collections: %d\n\n", collection.collection_size);
 	
+	int sum = 0;
+
 	for(i=0;i<collection.collection_size;i++){
 		fprintf(f, "%3d) %3d fundamental tiles with faces of order", i+1, *(collection.frequency + i));
+		sum += *(collection.frequency + i);
 		for(j=0;j<(collection.collection+i)->size;j++)
 			fprintf(f, " %d", *((collection.collection+i)->faces + j));
 		fprintf(f, " \n");
 	}
+	fprintf(f, "sum: %d \n", sum);
 }
 
 int getMaximumFaceSize(DELANEY *symbol){
