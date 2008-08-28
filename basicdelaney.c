@@ -556,6 +556,7 @@ void makeOrientable(DELANEY *symbol, DELANEY *copy){
 	}
 }
 
+//checks to see if the symbol is orientable and there occur no branchings
 int hasOnlyTranslation(DELANEY *symbol){
 	int i;
 	if(!isOrientable(symbol))
