@@ -79,11 +79,19 @@ void insertAzulene(DELANEY *symbol){
 		DELANEY azulenoid;
 		copyDelaney(symbol, &azulenoid);
 		azulenoid.size=60;
+		for(j=0;j<60;j++) azulenoid.color[j]=0; //set all marks to zero
+
 		for(j=48;j<60;j++) azulenoid.m[j][1]=3;
 		for(j=1;j<7;j++) azulenoid.m[(j+2*i)%16][0]=5;
 		for(j=7;j<17;j++) azulenoid.m[(j+2*i)%16][0]=7;
 		for(j=48;j<52;j++) azulenoid.m[j][0]=5;
 		for(j=52;j<56;j++) azulenoid.m[j][0]=7;
+
+		//mark azulene
+		for(j=1;j<7;j++) azulenoid.color[(j+2*i)%16]=1;
+		for(j=7;j<17;j++) azulenoid.color[(j+2*i)%16]=1;
+		for(j=48;j<52;j++) azulenoid.color[j]=1;
+		for(j=52;j<56;j++) azulenoid.color[j]=1;
 		
 		int start = symbol->chambers[(1+2*i)%16][2];
 		int newValue = symbol->m[start][0]+2*symbol->m[start][0]/getChambersInOrbit(symbol, start, 0, 1);
@@ -106,7 +114,7 @@ void insertAzulene(DELANEY *symbol){
 			next = symbol->chambers[next][j];
 		}
 
-		//moved this to after second adjustement.
+		//moved this too after second adjustement.
 		//this was otherwise not adjusted when they were
 		//in the same face as the second adjustement
 		azulenoid.m[56][0]=azulenoid.m[symbol->chambers[(1+2*i)%16][2]][0];
@@ -297,6 +305,7 @@ void basicDelaney(DELANEY *symbol){
 		symbol->chambers[i][2] = -1;
 		symbol->m[i][0] = -1;
 		symbol->m[i][1] = 3;
+		symbol->color[i] = 0;
 	}
 	for(i = 1; i< 16; i=i+2){
 		symbol->chambers[i][0] = (i - 1)%16;
@@ -721,6 +730,8 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "  -o\t: Output the calculated octagon tilings.\n");
 				fprintf(stderr, "  -a\t: Output the calculated azulenoids.\n");
 				fprintf(stderr, "  -t\t: Output only azulenoids who's isometry group consists of only translations.\n");
+				fprintf(stderr, "  -c\t: Output translation only covers.\n");
+				fprintf(stderr, "  -p\t: Output periodic graphs.\n");
 				fprintf(stderr, "  -s\t: Output a summary.\n");
 				fprintf(stderr, "  -r(number)_\t: Output the calculated azulenoids restricted to a maximum face size.\n");
 				fprintf(stderr, "  -h\t: Print this help and return.\n");
@@ -811,7 +822,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "\nFound %d minimal, canonical azulenoids.\n", minimal_azulenoid_library.size);
 	if(export_azulenoid){
 		if(export_minimal)
-			exportLibrary(&minimal_azulenoid_library, 1, stdout);
+			exportLibrary(&minimal_azulenoid_library, 0, stdout);
 		else
 			exportLibrary(&azulenoid_library, 1, stdout);
 	}

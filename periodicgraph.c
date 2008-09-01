@@ -509,6 +509,9 @@ int createPeriodicGraphFromQuadrangularPatch(DELANEY *symbol, PeriodicGraph *gra
 
 	for(i=0; i<symbol->size; i++)
 		faceMarker[i]=0;
+
+	for(i=0; i<faceCount; i++)
+		graph->colored[i]=0;
 	
 	for(i=0; i<symbol->size; i++)
 		if(!faceMarker[i]){
@@ -529,6 +532,7 @@ int createPeriodicGraphFromQuadrangularPatch(DELANEY *symbol, PeriodicGraph *gra
 			}
 			//(faces + faceCounter) -> vertices = faceVertices;
 			(faces + faceCounter) -> order = symbol->m[i][0];
+			graph->colored[faceCounter] = symbol->color[i];
 			faceCounter++;
 		}
 	
@@ -838,6 +842,9 @@ int createPeriodicGraphFromHexagonalPatch(DELANEY *symbol, PeriodicGraph *graph,
 	for(i=0; i<symbol->size; i++)
 		faceMarker[i]=0;
 	
+	for(i=0; i<faceCount; i++)
+		graph->colored[i]=0;
+	
 	for(i=0; i<symbol->size; i++)
 		if(!faceMarker[i]){
 			//int* faceVertices = (int *)malloc((symbol->m[i][0])*sizeof(int)); //TODO: free
@@ -857,6 +864,7 @@ int createPeriodicGraphFromHexagonalPatch(DELANEY *symbol, PeriodicGraph *graph,
 			}
 			//(faces + faceCounter) -> vertices = faceVertices;
 			(faces + faceCounter) -> order = symbol->m[i][0];
+			graph->colored[faceCounter] = symbol->color[i];
 			faceCounter++;
 		}
 	
@@ -980,12 +988,18 @@ void exportPeriodicGraph(PeriodicGraph *graph, FILE *f, int endLine){
 		}
 		
 	i = graph->faceCount-1;
-	for(j=0; j<(graph->faces+i)->order-1; j++)
+	for(j=0; j<(graph->faces+i)->order; j++)
 		fprintf(f, "%d ", (graph->faces+i)->vertices[j]);
-	j=(graph->faces+i)->order-1;
+	
+	fprintf(f, "# facehighlight");
+
+	for(i=0; i<graph->faceCount;i++){
+		if(graph->colored[i]){
+			fprintf(f, " %d -16751416", i);
+		}
+	}
 	
 	if(endLine)
-		fprintf(f, "%d\n", (graph->faces+i)->vertices[j]);
-	else
-		fprintf(f, "%d", (graph->faces+i)->vertices[j]);
+		fprintf(f, "\n");
+
 }

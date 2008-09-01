@@ -20,6 +20,7 @@ struct __pgraph{
 	int faceCount;
 	struct __pgedge *edges;
 	struct __pgface *faces;
+	int colored[200];
 	double x[120];//TODO: make pointer and use malloc
 	double y[120];//TODO: make pointer and use malloc
 };

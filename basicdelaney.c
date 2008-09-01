@@ -17,11 +17,11 @@
 
 void printDelaney(DELANEY *symbol, FILE *f){
 	int i;
-	fprintf(f, "|     | s0  | s1  | s2  | m01 | m12 |\n");
-	fprintf(f, "|===================================|\n");
+	fprintf(f, "|     | s0  | s1  | s2  | m01 | m12 |  c  |\n");
+	fprintf(f, "|=========================================|\n");
 	for(i = 0; i<symbol->size; i++)
-		fprintf(f, "| %3d | %3d | %3d | %3d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m[i][0], symbol->m[i][1]);
-	fprintf(f, "|===================================|\n");
+		fprintf(f, "| %3d | %3d | %3d | %3d | %3d | %3d | %3d |\n", i, symbol->chambers[i][0], symbol->chambers[i][1], symbol->chambers[i][2], symbol->m[i][0], symbol->m[i][1], symbol->color[i]);
+	fprintf(f, "|=========================================|\n");
 	fprintf(f, "\n\n");
 }
 
@@ -167,6 +167,7 @@ void emptyDelaney(DELANEY *symbol, int size){
 			symbol->chambers[i][j]=-1;
 		symbol->m[i][0]=-1;
 		symbol->m[i][1]=-1;
+		symbol->color[i]=0;
 	}
 }
 
@@ -183,6 +184,8 @@ int collapse(DELANEY *symbol, int chamber1, int chamber2, int* partition){
 	for(i=0; i<2; i++)
 		if(symbol->m[chamber1][i]!=symbol->m[chamber2][i])
 			return 0;
+	if(symbol->color[chamber1]!=symbol->color[chamber2])
+		return 0;
 		
 	if(partition[chamber1]==partition[chamber2])
 		return 1; //already collapsed
@@ -214,6 +217,9 @@ int collapse(DELANEY *symbol, int chamber1, int chamber2, int* partition){
 			for(i=0; i<2; i++)
 				if(symbol->m[neighbour1][i]!=symbol->m[neighbour2][i])
 					return 0;
+			if(symbol->color[neighbour1]!=symbol->color[neighbour2])
+					return 0;
+
 			
 			//union
 			if(partition[neighbour1]<partition[neighbour2]){
@@ -283,6 +289,7 @@ void minimal_delaney(DELANEY *symbol, DELANEY *minimal_symbol){
 	for(i=0; i<newsize; i++){
 		minimal_symbol->m[i][0]=symbol->m[new2old[i]][0];
 		minimal_symbol->m[i][1]=symbol->m[new2old[i]][1];
+		minimal_symbol->color[i]=symbol->color[new2old[i]];
 		minimal_symbol->chambers[i][0]=old2new[symbol->chambers[new2old[i]][0]];
 		minimal_symbol->chambers[i][1]=old2new[symbol->chambers[new2old[i]][1]];
 		minimal_symbol->chambers[i][2]=old2new[symbol->chambers[new2old[i]][2]];
@@ -319,6 +326,12 @@ int compare(DELANEY *symbol1, DELANEY *symbol2){
 		if(i<symbol1->size)
 			return (symbol1->chambers[i][j] - symbol2->chambers[i][j]);
 	}
+
+	i=0;
+	while(i<symbol1->size && symbol1->color[i] == symbol2->color[i])
+		i++;
+	if(i<symbol1->size)
+		return (symbol1->color[i] - symbol2->color[i]);
 	
 	return 0;
 }
@@ -374,6 +387,7 @@ void apply_relabelling(DELANEY *origin, int *relabelling, DELANEY *image){
 	for(i=0; i<origin->size; i++){
 		image->m[i][0] = origin->m[relabelling[i]][0];
 		image->m[i][1] = origin->m[relabelling[i]][1];
+		image->color[i] = origin->color[relabelling[i]];
 		image->chambers[i][0] = reverse_labelling[origin->chambers[relabelling[i]][0]];
 		image->chambers[i][1] = reverse_labelling[origin->chambers[relabelling[i]][1]];
 		image->chambers[i][2] = reverse_labelling[origin->chambers[relabelling[i]][2]];
@@ -409,6 +423,7 @@ void copyDelaney(DELANEY *original, DELANEY *copy){
 			copy->chambers[j][i]=original->chambers[j][i];
 		copy->m[j][0]=original->m[j][0];
 		copy->m[j][1]=original->m[j][1];
+		copy->color[j]=original->color[j];
 	}
 }
 
@@ -539,6 +554,8 @@ void makeOrientable(DELANEY *symbol, DELANEY *copy){
 		for (j = 0; j < 2; j++) {
 			copy->m[i][j]=symbol->m[i][j];
 			copy->m[i+symbol->size][j]=symbol->m[i][j];
+			copy->color[i]=symbol->color[i];
+			copy->color[i+symbol->size]=symbol->color[i+symbol->size];
 		}
 	}
 	
@@ -579,6 +596,7 @@ void copyInto(DELANEY *original, DELANEY *copy, int n){
 					copy->chambers[j + k*original->size][i]=-1;
 			copy->m[j + k*original->size][0]=original->m[j][0];
 			copy->m[j + k*original->size][1]=original->m[j][1];
+			copy->color[j + k*original->size]=original->color[j];
 		}
 	}
 }
@@ -828,6 +846,7 @@ void symbolBFS(DELANEY *symbol, DELANEY *tree){
 				queue[queueTail++] = symbol->chambers[current][i];
 				tree->m[symbol->chambers[current][i]][0]=symbol->m[symbol->chambers[current][i]][0];
 				tree->m[symbol->chambers[current][i]][1]=symbol->m[symbol->chambers[current][i]][1];
+				tree->color[symbol->chambers[current][i]]=symbol->color[symbol->chambers[current][i]];
 				tree->chambers[current][i]=symbol->chambers[current][i];
 				tree->chambers[symbol->chambers[current][i]][i]=current;
 			}
@@ -841,6 +860,7 @@ void symbolDFS(DELANEY *symbol, DELANEY *tree, int *sigmas, int parent){
 		if(tree->m[symbol->chambers[parent][sigmas[i]]][0]==-1){
 			tree->m[symbol->chambers[parent][sigmas[i]]][0]=symbol->m[symbol->chambers[parent][sigmas[i]]][0];
 			tree->m[symbol->chambers[parent][sigmas[i]]][1]=symbol->m[symbol->chambers[parent][sigmas[i]]][1];
+			tree->color[symbol->chambers[parent][sigmas[i]]]=symbol->color[symbol->chambers[parent][sigmas[i]]];
 			tree->chambers[parent][sigmas[i]]=symbol->chambers[parent][sigmas[i]];
 			tree->chambers[symbol->chambers[parent][sigmas[i]]][sigmas[i]]=parent;
 			symbolDFS(symbol, tree, sigmas, symbol->chambers[parent][sigmas[i]]);

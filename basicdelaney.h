@@ -21,6 +21,8 @@ struct __delaney{
 	
 	int m[DELANEYSIZE][2];
 	
+	int color[DELANEYSIZE];
+	
 	int comment1;
 	int comment2;
 };
