@@ -555,7 +555,7 @@ void makeOrientable(DELANEY *symbol, DELANEY *copy){
 			copy->m[i][j]=symbol->m[i][j];
 			copy->m[i+symbol->size][j]=symbol->m[i][j];
 			copy->color[i]=symbol->color[i];
-			copy->color[i+symbol->size]=symbol->color[i+symbol->size];
+			copy->color[i+symbol->size]=symbol->color[i];
 		}
 	}
 	
