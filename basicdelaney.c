@@ -440,6 +440,18 @@ int addSymbol2Library(DELANEY *symbol, DELANEY_COLLECTION *library){
 		return 0;
 }
 
+//adds symbol to library and returns the position where it can be found
+int addSymbol2LibraryPosition(DELANEY *symbol, DELANEY_COLLECTION *library){
+	canonical_form(symbol, library->collection + library->size);
+	int i = 0;
+	while(i<library->size && compare(library->collection + library->size, library->collection + i)!=0)
+		i++;
+	if(i==library->size){
+		library->size++;
+	}
+	return i;
+}
+
 
 int getChambersInOrbit(DELANEY *symbol, int start, int i, int j){
 	int marker[symbol->size];

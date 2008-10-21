@@ -66,6 +66,8 @@ void copyDelaney(DELANEY *original, DELANEY *copy);
 
 int addSymbol2Library(DELANEY *symbol, DELANEY_COLLECTION *library);
 
+int addSymbol2LibraryPosition(DELANEY *symbol, DELANEY_COLLECTION *library);
+
 int getChambersInOrbit(DELANEY *symbol, int start, int i, int j);
 
 int getOrbitSize(DELANEY *symbol, int start, int i, int j);
