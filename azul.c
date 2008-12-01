@@ -33,7 +33,11 @@ DELANEY_COLLECTION octagon_library;
 DELANEY_COLLECTION minimal_octagon_library;
 DELANEY_COLLECTION azulenoid_library;
 DELANEY_COLLECTION minimal_azulenoid_library;
+DELANEY_COLLECTION minimal_azulenoid_library_unmarked; //unmarked versions of the tilings in minimal_azulenoid_library
+DELANEY_COLLECTION minimal_unmarked_azulenoid_library; //minimal, unmarked versions of the tilings in minimal_azulenoid_library
 DELANEY_COLLECTION translation_only_azulenoid_library;
+
+int marked = 0;
 
 int counter = 0;
 int counter2 = 0;
@@ -87,11 +91,13 @@ void insertAzulene(DELANEY *symbol){
 		for(j=48;j<52;j++) azulenoid.m[j][0]=5;
 		for(j=52;j<56;j++) azulenoid.m[j][0]=7;
 
-		//mark azulene
-		for(j=1;j<7;j++) azulenoid.color[(j+2*i)%16]=1;
-		for(j=7;j<17;j++) azulenoid.color[(j+2*i)%16]=1;
-		for(j=48;j<52;j++) azulenoid.color[j]=1;
-		for(j=52;j<56;j++) azulenoid.color[j]=1;
+		if(marked){
+			//mark azulene
+			for(j=1;j<7;j++) azulenoid.color[(j+2*i)%16]=1;
+			for(j=7;j<17;j++) azulenoid.color[(j+2*i)%16]=1;
+			for(j=48;j<52;j++) azulenoid.color[j]=1;
+			for(j=52;j<56;j++) azulenoid.color[j]=1;
+		}
 		
 		int start = symbol->chambers[(1+2*i)%16][2];
 		int newValue = symbol->m[start][0]+2*symbol->m[start][0]/getChambersInOrbit(symbol, start, 0, 1);
@@ -632,6 +638,112 @@ void exportRestrictedSymbols(DELANEY_COLLECTION *library, FILE *f, int maximumSi
 	}
 }
 
+//investigate how many tilings are isomorphic as unmarked tilings, but not as marked tilings
+void deepSummaryUnmarkedMarked(){
+	//we look at the minimal azulenoid library, remove the marks and check for isomorphic structures
+
+	//there is one entry in mapping for each element in the unmarked library
+	//at position 0 is the number of marked tilings that correspond to that unmarked tiling
+	//the following positions contain the numbers of the marked tilings
+	int mapping[minimal_azulenoid_library.size][20];
+	int i,j;
+	minimal_azulenoid_library_unmarked.size=0;
+	for(i = 0; i<minimal_azulenoid_library.size;i++){
+		//clean mapping while going through the library
+		//there will never be more mappings then elements we have viewed.
+		mapping[i][0]=0;
+		DELANEY unmarked;
+		copyDelaney(minimal_azulenoid_library.collection + i, &unmarked);
+		for(j=0;j<unmarked.size;j++){ //remove marks
+			unmarked.color[j]=0;
+		}
+		
+		int target = addSymbol2LibraryPosition(&unmarked, &minimal_azulenoid_library_unmarked);
+		
+		mapping[target][0]++;
+		mapping[target][mapping[target][0]]=i;
+	}
+	
+	//todo: maybe make a frequency table of the number of marked tilings per unmarked tilings
+	//this seems to always be one or two
+	int count = 0;
+	int count2 = 0;
+	for(i = 0; i<minimal_azulenoid_library_unmarked.size;i++){
+		if(mapping[i][0]>1){
+			count = count + mapping[i][0];
+			count2++;
+			exportDelaney(minimal_azulenoid_library_unmarked.collection+i,stdout);
+		} else if(mapping[i][0]<1) {
+			fprintf(stderr, "Illegal number: %d\n", mapping[i][0]);
+		}
+	}
+	
+	fprintf(stderr, "There are %d tilings that are isomorph as unmarked tilings, but not as marked tilings.\n", count);
+	fprintf(stderr, "There are %d unmarked tilings that have nonisomorphic marked tilings.\n", count2);
+}
+
+//investigate how many tilings have isomorphic minimal tilings as unmarked tilings, but not as marked tilings
+void deepSummaryUnmarkedMinimal(){
+	//we look at the minimal azulenoid library, remove the marks and check for isomorphic, minimal structures
+
+	//there is one entry in mapping for each element in the unmarked library
+	//at position 0 is the number of marked tilings that correspond to that unmarked tiling
+	//the following positions contain the numbers of the marked tilings
+	int mapping[minimal_azulenoid_library.size][20];
+	int i,j;
+	minimal_azulenoid_library_unmarked.size=0;
+	for(i = 0; i<minimal_azulenoid_library.size;i++){
+		//clean mapping while going through the library
+		//there will never be more mappings then elements we have viewed.
+		mapping[i][0]=0;
+		DELANEY unmarked;
+		copyDelaney(minimal_azulenoid_library.collection + i, &unmarked);
+		for(j=0;j<unmarked.size;j++){ //remove marks
+			unmarked.color[j]=0;
+		}
+		DELANEY minimal;
+		minimal_delaney(&unmarked, &minimal);
+		
+		int target = addSymbol2LibraryPosition(&minimal, &minimal_unmarked_azulenoid_library);
+		
+		mapping[target][0]++;
+		mapping[target][mapping[target][0]]=i;
+	}
+	
+	//todo: maybe make a frequency table of the number of marked tilings per unmarked tilings
+	//this seems to always be one or two
+	int count = 0;
+	int count2 = 0;
+	int max = 0;
+	for(i = 0; i<minimal_unmarked_azulenoid_library.size;i++){
+		if(max<mapping[i][0])
+			max = mapping[i][0];
+		if(mapping[i][0]>1){
+			count = count + mapping[i][0];
+			count2++;
+		} else if(mapping[i][0]<1) {
+			fprintf(stderr, "Illegal number: %d\n", mapping[i][0]);
+		}
+	}
+	
+	int frequency[max+1];
+	for(i = 0; i<max+1;i++)
+		frequency[i]=0;
+	for(i = 0; i<minimal_unmarked_azulenoid_library.size;i++){
+		frequency[mapping[i][0]]++;
+	}
+	
+	for(i = 0; i<max+1;i++)
+		fprintf(stderr, "There are %d unmarked minimal tilings that have %d marked ancestors.\n", frequency[i] , i);
+	fprintf(stderr, "There are %d tilings that have isomorphic minimal tilings as unmarked tilings, but not as marked tilings.\n", count);
+	fprintf(stderr, "There are %d unmarked minimal tilings that have more than one marked tilings as ancestors.\n", count2);
+	for(i = 0; i<minimal_unmarked_azulenoid_library.size;i++)
+		if(mapping[i][0]>3)
+			for(j=1; j<=mapping[i][0]; j++)
+				exportDelaney(minimal_azulenoid_library.collection+mapping[i][j],stdout);
+
+}
+
 int parseNumber(char *argv[]){
 	int c, stop=0, number = 0;
     while(!stop && (c = *++argv[0])){
@@ -692,6 +804,7 @@ int main(int argc, char *argv[])
     int restriction = 0;
 	int export_cover = 0;
 	int export_pg = 0;
+	int export_deepsummary = 0;
 	int c, error = 0;
 	while (--argc > 0 && (*++argv)[0] == '-'){
 		while ((c = *++argv[0]))
@@ -715,26 +828,35 @@ int main(int argc, char *argv[])
 				export_restricted = 1;
 				restriction = parseNumber(argv);
 				break;
+			case 'd':
+				export_deepsummary = parseNumber(argv);
+				break;
 			case 'c':
 				export_cover = 1;
 				break;
 			case 'p':
 				export_pg = 1;
 				break;
+			case 'M':
+				marked = 1;
+				break;
 			case 'h':
 				//print help
 				fprintf(stderr, "The program azul calculates toroidal azulenoids.\n");
 				fprintf(stderr, "Usage: azul [-moatsrcph]\n\n");
 				fprintf(stderr, "Valid options:\n");
-				fprintf(stderr, "  -m\t: Output minimal symbols.\n");
-				fprintf(stderr, "  -o\t: Output the calculated octagon tilings.\n");
-				fprintf(stderr, "  -a\t: Output the calculated azulenoids.\n");
-				fprintf(stderr, "  -t\t: Output only azulenoids who's isometry group consists of only translations.\n");
-				fprintf(stderr, "  -c\t: Output translation only covers.\n");
-				fprintf(stderr, "  -p\t: Output periodic graphs.\n");
-				fprintf(stderr, "  -s\t: Output a summary.\n");
-				fprintf(stderr, "  -r(number)_\t: Output the calculated azulenoids restricted to a maximum face size.\n");
-				fprintf(stderr, "  -h\t: Print this help and return.\n");
+				fprintf(stderr, "  -m          : Output minimal symbols.\n");
+				fprintf(stderr, "  -o          : Output the calculated octagon tilings.\n");
+				fprintf(stderr, "  -a          : Output the calculated azulenoids.\n");
+				fprintf(stderr, "  -t          : Output only azulenoids who's isometry group consists of only translations.\n");
+				fprintf(stderr, "  -c          : Output translation only covers.\n");
+				fprintf(stderr, "  -p          : Output periodic graphs.\n");
+				fprintf(stderr, "  -s          : Output a summary.\n");
+				fprintf(stderr, "  -d(number)_ : Output a deep summary.\n");
+				fprintf(stderr, "                 1) marked tilings that are isomorphic as unmarked tilings.\n");
+				fprintf(stderr, "                 2) marked tilings that have isomorphic minimal tilings as unmarked tilings.\n");
+				fprintf(stderr, "  -r(number)_ : Output the calculated azulenoids restricted to a maximum face size.\n");
+				fprintf(stderr, "  -h          : Print this help and return.\n");
 				return 0;
 			default:
 				fprintf(stderr, "azul: illegal option %c\n", c);
@@ -822,7 +944,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "\nFound %d minimal, canonical azulenoids.\n", minimal_azulenoid_library.size);
 	if(export_azulenoid){
 		if(export_minimal)
-			exportLibrary(&minimal_azulenoid_library, 0, stdout);
+			exportLibrary(&minimal_azulenoid_library, 1, stdout);
 		else
 			exportLibrary(&azulenoid_library, 1, stdout);
 	}
@@ -887,6 +1009,11 @@ int main(int argc, char *argv[])
 		} else {
 			exportLibrary(&translation_only_azulenoid_library, 1, stdout);
 		}
+	}
+	if(export_deepsummary==1){
+		deepSummaryUnmarkedMarked();
+	} else if(export_deepsummary==2){
+		deepSummaryUnmarkedMinimal();
 	}
 	return 0;
 }
