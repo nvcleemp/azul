@@ -344,12 +344,27 @@ void basicDelaney(DELANEY *symbol){
  * Check to see if the given circular string is canonical.
  */
 int isCanonicalCircularString(int* circularString){
-	int i;
+	//check mirror string
+	int i = 0;
+	while(i < 8 && *(circularString + i) == *(circularString + (-i + 8)%8))
+		i++;
+	if(i<8 && *(circularString + i) > *(circularString + (-i + 8)%8)) {
+		return 0; //not canonical
+	}
+	
 	for(i = 1; i<8; i++){
 		int j = 0;
 		while(j < 8 && *(circularString + j) == *(circularString + (j + i)%8))
 			j++;
 		if(j<8 && *(circularString + j) > *(circularString + (j + i)%8)) {
+			return 0; //not canonical
+		}
+		
+		//check mirror string
+		j = 0;
+		while(j < 8 && *(circularString + j) == *(circularString + (-j + i + 8)%8))
+			j++;
+		if(j<8 && *(circularString + j) > *(circularString + (-j + i + 8)%8)) {
 			return 0; //not canonical
 		}
 	}
