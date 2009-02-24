@@ -537,7 +537,7 @@ void exportOnlyTranslation(int pg){
 				PeriodicGraph graph;
 				if(createPeriodicGraph(azulenoid_library.collection + i, &graph)){
 					exportPeriodicGraph(&graph, stdout, 0);
-					fprintf(stdout, " # ");
+					fprintf(stdout, " # symbol ");
 					exportDelaney(azulenoid_library.collection + i,stdout);
 				}
 			}
@@ -1017,7 +1017,7 @@ int main(int argc, char *argv[])
 				PeriodicGraph graph;
 				if(createPeriodicGraph(translation_only_azulenoid_library.collection + i, &graph)){
 					exportPeriodicGraph(&graph, stdout, 0);
-					fprintf(stdout, " # ");
+					fprintf(stdout, " # symbol ");
 					exportDelaney(minimal_azulenoid_library.collection+i,stdout);
 				}
 			}
